@@ -76,28 +76,76 @@ function getBody(ad) {
   return (snap.cards || []).map(c => c.body || '').filter(Boolean).join(' | ');
 }
 
+function normalize(str) {
+  return (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
 function deduplicateAds(ads) {
   const seen = new Map();
-  for (const ad of ads) {
-    const snap = getSnap(ad);
-    const body = getBody(ad).trim().slice(0, 100);
-    const collation = ad.collationId || snap.collationId || null;
-    const key = collation ? `col:${collation}` : `body:${body}`;
 
+  function mergeInto(key, ad) {
     if (!seen.has(key)) {
       seen.set(key, { ad, variants: [ad] });
+      return;
+    }
+    seen.get(key).variants.push(ad);
+    const entry = seen.get(key);
+    const cur = entry.ad;
+    const curDate = cur.startDateFormatted || '';
+    const newDate = ad.startDateFormatted || '';
+    if (!cur.isActive && ad.isActive) entry.ad = ad;
+    else if (cur.isActive === ad.isActive && newDate > curDate) entry.ad = ad;
+  }
+
+  // Build a map from collationId → canonical key, so fuzzy matches
+  // merge into the same group as their collation siblings
+  const keyForAd = new Map();
+
+  for (const ad of ads) {
+    const snap = getSnap(ad);
+    const collation = ad.collationId || snap.collationId || null;
+    const headline = normalize(snap.title).slice(0, 60);
+    const body = normalize(getBody(ad)).slice(0, 80);
+    const fuzzyKey = `fuzzy:${headline}|${body}`;
+    const collKey = collation ? `col:${collation}` : null;
+
+    // Determine canonical key: prefer collation, but unify with fuzzy
+    // so ads with different collationIds but same creative merge together
+    let canonical = null;
+
+    if (collKey && seen.has(collKey)) {
+      canonical = collKey;
+    } else if (seen.has(fuzzyKey)) {
+      canonical = fuzzyKey;
+    } else if (collKey) {
+      canonical = collKey;
     } else {
-      seen.get(key).variants.push(ad);
-      const entry = seen.get(key);
-      const cur = entry.ad;
-      const curDate = cur.startDateFormatted || '';
-      const newDate = ad.startDateFormatted || '';
-      if (!cur.isActive && ad.isActive) entry.ad = ad;
-      else if (cur.isActive === ad.isActive && newDate > curDate) entry.ad = ad;
+      canonical = fuzzyKey;
+    }
+
+    // If collation key exists but fuzzy already matched something else,
+    // link them: use whichever was seen first
+    if (collKey && seen.has(fuzzyKey) && !seen.has(collKey)) {
+      canonical = fuzzyKey;
+    } else if (collKey && !seen.has(fuzzyKey) && seen.has(collKey)) {
+      canonical = collKey;
+    }
+
+    mergeInto(canonical, ad);
+    keyForAd.set(ad, canonical);
+
+    // Register the other key as an alias pointing to same group
+    if (collKey && canonical !== collKey && !seen.has(collKey)) {
+      seen.set(collKey, seen.get(canonical));
+    }
+    if (canonical !== fuzzyKey && !seen.has(fuzzyKey)) {
+      seen.set(fuzzyKey, seen.get(canonical));
     }
   }
 
-  return Array.from(seen.values()).map(({ ad, variants }) => {
+  // Deduplicate the groups (aliases point to same object)
+  const uniqueGroups = [...new Set([...seen.values()])];
+  return uniqueGroups.map(({ ad, variants }) => {
     ad._variantCount = variants.length;
     const dates = variants.map(v => v.startDateFormatted || '').filter(Boolean).sort();
     ad._dateRange = dates.length > 1
