@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CREEP — Competitor Ad Research by MajorForm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          transparent;
+    --card:        #1a1a1a;
+    --card2:       #222222;
+    --input:       #2a2a2a;
+    --border:      #333333;
+    --border-soft: rgba(255,255,255,0.06);
+    --accent:      #c8f060;
+    --accent-dim:  rgba(200,240,96,0.12);
+    --accent-glow: rgba(200,240,96,0.18);
+    --text:        #f0f0f0;
+    --text-sub:    #999999;
+    --muted:       #666666;
+    --green:       #c8f060;
+    --green-bg:    rgba(200,240,96,0.12);
+    --blue:        #7aabff;
+    --blue-bg:     rgba(100,150,255,0.12);
+    --purple:      #c87aff;
+    --purple-bg:   rgba(180,100,255,0.12);
+    --orange:      #f5a623;
+    --orange-bg:   rgba(245,166,35,0.12);
+    --red:         #ff5a5a;
+    --radius:      16px;
+    --radius-sm:   10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 32px 0 80px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── CARDS ── */
+  .config-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .config-card h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  /* ── FORM FIELDS ── */
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
+  }
+
+  .field .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--input);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+  }
+
+  .field input::placeholder { color: var(--muted); }
+
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: rgba(200,240,96,0.5);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 12px; }
+
+  /* ── PRIMARY BUTTONS ── */
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+    letter-spacing: -0.1px;
+  }
+
+  .btn-primary:hover   { opacity: 0.88; }
+  .btn-primary:active  { transform: scale(0.99); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── SECONDARY BUTTONS ── */
+  .btn-secondary {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    color: var(--text-sub);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin-top: 8px;
+  }
+
+  .btn-secondary:hover    { background: var(--card2); border-color: #444; }
+  .btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-abort {
+    display: none;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid #c0392b;
+    color: #c0392b;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── LOG BOX ── */
+  .log-box {
+    background: var(--input);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 11px;
+    line-height: 1.9;
+    min-height: 40px;
+    margin-top: 14px;
+    display: none;
+    color: var(--muted);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .log-box.visible { display: block; }
+  .log-line.ok  { color: var(--accent); }
+  .log-line.err { color: var(--red); }
+
+  /* ── OR DIVIDER ── */
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── PAGE SELECTION ── */
+  .select-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .page-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .page-card:hover { border-color: rgba(200,240,96,0.4); background: #262626; }
+
+  .page-card img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--input);
+  }
+
+  .page-card .page-avatar-placeholder {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--input);
+    flex-shrink: 0;
+  }
+
+  .page-card .page-info { flex: 1; min-width: 0; }
+  .page-card .page-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .page-card .page-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .page-card .page-arrow { color: var(--accent); font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+  /* ── SELECTED PAGE BAR ── */
+  .selected-page-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .selected-page-info img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--input);
+  }
+
+  .selected-page-info .page-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .selected-page-info .page-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .btn-change-page {
+    margin-left: auto;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+    white-space: nowrap;
+  }
+  .btn-change-page:hover { border-color: #555; }
+
+  /* ── RESULTS ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .metric {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+
+  .metric-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .section {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  /* ── PILLS ── */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    margin: 3px;
+    font-weight: 500;
+    color: var(--text-sub);
+  }
+
+  .pill .count { font-weight: 700; color: var(--accent); font-size: 11px; }
+
+  /* ── THEME CHIP ── */
+  .theme-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-sub);
+  }
+
+  .theme-chip .theme-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .theme-chip .theme-count {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-left: auto;
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .filter-btn {
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: #555; }
+  .filter-btn.active { background: var(--accent-dim); border-color: rgba(200,240,96,0.5); color: var(--accent); }
+
+  /* ── AD GRID ── */
+  .ad-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .ad-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--card2);
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s;
+  }
+
+  .ad-card:hover { border-color: #444; }
+
+  .ad-media {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--input);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ad-media img, .ad-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ad-media .no-media {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .carousel-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.5px;
+  }
+
+  .score-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.75);
+    border: 0.5px solid rgba(200,240,96,0.4);
+    color: var(--accent);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    display: none;
+  }
+
+  .ad-body { padding: 13px; flex: 1; display: flex; flex-direction: column; gap: 9px; }
+
+  .ad-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .tag-active   { background: var(--green-bg);  color: var(--green); }
+  .tag-inactive { background: rgba(255,255,255,0.06); color: var(--muted); }
+  .tag-image    { background: var(--blue-bg);   color: var(--blue); }
+  .tag-video    { background: var(--orange-bg); color: var(--orange); }
+  .tag-carousel { background: var(--purple-bg); color: var(--purple); }
+
+  .variants-badge {
+    display: inline-block;
+    background: var(--accent-dim);
+    border: 0.5px solid rgba(200,240,96,0.3);
+    color: var(--accent);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  .ad-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .platform-badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .platform-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    border: 0.5px solid var(--border);
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .platform-badge.fb  { background: rgba(66,103,178,0.15); color: #7aabff; border-color: rgba(66,103,178,0.3); }
+  .platform-badge.ig  { background: rgba(193,53,132,0.15); color: #f07bc0; border-color: rgba(193,53,132,0.3); }
+  .platform-badge.msg { background: rgba(0,153,255,0.12);  color: #60c8f0; border-color: rgba(0,153,255,0.25); }
+  .platform-badge.thr { background: rgba(255,255,255,0.06);color: #aaa;    border-color: var(--border); }
+  .platform-badge.an  { background: rgba(255,166,35,0.12); color: #f5a623; border-color: rgba(255,166,35,0.25); }
+
+  .run-duration { font-size: 11px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; margin-left: auto; }
+  .run-duration.long  { color: var(--accent); }
+  .run-duration.med   { color: var(--orange); }
+  .run-duration.short { color: var(--muted); }
+
+  .ad-date { font-size: 10px; color: var(--muted); margin-left: auto; font-weight: 500; }
+
+  .ad-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 0.5px solid var(--border);
+    margin-top: 2px;
+  }
+
+  .landing-domain {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Grotesk', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+
+  .ad-summary-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 2px;
+  }
+
+  .ad-summary { font-size: 12px; line-height: 1.6; color: var(--text-sub); }
+
+  .ai-summary-wrap {
+    background: var(--input);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 2px;
+  }
+
+  .ai-summary { font-size: 12px; line-height: 1.6; color: var(--text-sub); font-style: italic; }
+  .ai-summary.loading { color: var(--muted); font-style: normal; }
+  .ai-summary.error   { color: var(--red); font-style: normal; }
+
+  .score-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    display: none;
+  }
+
+  .roast-bar-track {
+    display: none;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .roast-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+    width: 0%;
+  }
+
+  .ad-cta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .ad-cta  { font-size: 11px; font-weight: 600; color: var(--text-sub); }
+  .ad-link { font-size: 11px; color: var(--accent); text-decoration: none; font-weight: 600; }
+  .ad-link:hover { opacity: 0.8; }
+
+  .btn-dl {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    padding: 0;
+  }
+  .btn-dl:hover { color: var(--text-sub); }
+
+  /* ── BAR ROWS ── */
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 9px;
+  }
+
+  .bar-label { font-size: 12px; min-width: 80px; font-weight: 500; color: var(--text-sub); text-transform: capitalize; }
+
+  .bar-track {
+    flex: 1;
+    height: 5px;
+    background: var(--input);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .bar-pct { font-size: 11px; color: var(--muted); min-width: 52px; text-align: right; font-weight: 500; }
+
+  /* ── SHOW MORE ── */
+  .show-more { text-align: center; margin-top: 16px; }
+
+  .show-more button {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 22px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+  }
+
+  .show-more button:hover { border-color: #555; }
+
+  .dedup-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--card2);
+    border-radius: 8px;
+    border: 0.5px solid var(--border);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO CARD ─────────────────────────────────────────────────────────── -->
+<div class="config-card" style="margin-bottom:20px;">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+    <div style="width:48px;height:48px;background:#111;border:0.5px solid #2a2a2a;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="7" stroke="#c8f060" stroke-width="1.5"/>
+        <path d="M16.5 16.5L21 21" stroke="#c8f060" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="9" cy="10" r="1" fill="#c8f060"/>
+        <circle cx="13" cy="10" r="1" fill="#c8f060"/>
+        <path d="M9 13.5c.7.7 1.3 1 2 1s1.3-.3 2-1" stroke="#c8f060" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:#f0f0f0;line-height:1.1;">CREEP</div>
+      <div style="font-size:13px;color:#666;margin-top:3px;line-height:1.4;">Competitive Research &amp; Enemy Ad Profiling — built for paid media teams to monitor what rivals are actually running</div>
+    </div>
+  </div>
+
+  <div style="font-size:13px;color:#999;line-height:1.75;margin-bottom:18px;">
+    Search any competitor's Facebook Page and get a full breakdown of their active ad creatives — formats, hooks, CTAs, landing pages, run duration, and AI-powered ROAST scoring, in under two minutes.
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">
+    <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid #2a2a2a;color:#888;background:#1f1f1f;">Ad creative breakdown</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid #2a2a2a;color:#888;background:#1f1f1f;">Run duration tracking</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid #2a2a2a;color:#888;background:#1f1f1f;">Platform intelligence</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid #2a2a2a;color:#888;background:#1f1f1f;">Landing page intel</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid #2a2a2a;color:#888;background:#1f1f1f;">ROAST scoring</span>
+    <span style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid #2a2a2a;color:#888;background:#1f1f1f;">Creative strategy summary</span>
+  </div>
+
+  <div onclick="toggleHowItWorks()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding-top:14px;border-top:0.5px solid #2a2a2a;user-select:none;">
+    <span style="font-size:13px;color:#666;">How this works</span>
+    <svg id="howChevron" width="12" height="12" viewBox="0 0 12 12" fill="none" style="transition:transform 0.25s;flex-shrink:0;">
+      <path d="M2 4L6 8L10 4" stroke="#666" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div id="howBody" style="display:none;padding-top:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div style="background:#111;border:0.5px solid #2a2a2a;border-radius:10px;padding:14px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:#c8f060;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">01 — Find</div>
+        <div style="font-size:12px;color:#666;line-height:1.65;">Search by competitor name or paste their Facebook Page URL. CREEP identifies the exact Page and pulls their ad library.</div>
+      </div>
+      <div style="background:#111;border:0.5px solid #2a2a2a;border-radius:10px;padding:14px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:#c8f060;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">02 — Analyse</div>
+        <div style="font-size:12px;color:#666;line-height:1.65;">Each ad is broken down by format, CTA, landing page, platforms, and how long it's been running. Longer-running = likely winner.</div>
+      </div>
+      <div style="background:#111;border:0.5px solid #2a2a2a;border-radius:10px;padding:14px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:#c8f060;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">03 — Score</div>
+        <div style="font-size:12px;color:#666;line-height:1.65;">Generate ROAST scores for every creative plus a full strategic summary — what's working, what isn't, and where the gap is for you.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIGURATION CARD ─────────────────────────────────────────────────── -->
+<div class="config-card">
+  <h2>Search Configuration</h2>
+
+  <div class="row3">
+    <div class="field">
+      <label>Competitor / Brand Name</label>
+      <input type="text" id="searchTerm" placeholder="e.g. OATSIDE, Nike Singapore" />
+      <div class="hint">We'll search for matching Pages first</div>
+    </div>
+    <div class="field">
+      <label>Country</label>
+      <select id="country">
+        <option value="SG" selected>Singapore</option>
+        <option value="MY">Malaysia</option>
+        <option value="ID">Indonesia</option>
+        <option value="TH">Thailand</option>
+        <option value="VN">Vietnam</option>
+        <option value="PH">Philippines</option>
+        <option value="HK">Hong Kong</option>
+        <option value="TW">Taiwan</option>
+        <option value="JP">Japan</option>
+        <option value="KR">South Korea</option>
+        <option value="CN">China</option>
+        <option value="IN">India</option>
+        <option value="AU">Australia</option>
+        <option value="NZ">New Zealand</option>
+        <option value="GB">United Kingdom</option>
+        <option value="US">United States</option>
+        <option value="CA">Canada</option>
+        <option value="DE">Germany</option>
+        <option value="FR">France</option>
+        <option value="ES">Spain</option>
+        <option value="IT">Italy</option>
+        <option value="NL">Netherlands</option>
+        <option value="AE">United Arab Emirates</option>
+        <option value="SA">Saudi Arabia</option>
+        <option value="BR">Brazil</option>
+        <option value="MX">Mexico</option>
+        <option value="ZA">South Africa</option>
+        <option value="NG">Nigeria</option>
+        <option value="ALL">All countries</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Max Results <span style="color:var(--muted);font-weight:400;">(max 20)</span></label>
+      <input type="number" id="maxResults" value="20" min="5" max="20" />
+      <div class="hint">Capped at 20 to protect Apify credits</div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="searchPagesBtn" onclick="searchPages()">Find matching Pages</button>
+  <button class="btn-abort" id="abortBtn" onclick="abortRun()">Abort current run</button>
+  <div class="hint" style="margin-top:8px;">Page search is capped at 10 results and a 90-second timeout to protect your Apify credits.</div>
+
+  <div class="or-divider">or</div>
+
+  <div class="field">
+    <label>Paste Facebook Page URL or Page ID directly</label>
+    <input type="text" id="directPageInput" placeholder="https://www.facebook.com/PureFitnessSG  or  104940844446187" />
+    <div class="hint">Accepts: facebook.com/PageName URL, numeric Page ID, or Ad Library URL containing view_all_page_id=</div>
+  </div>
+  <button class="btn-secondary" id="useDirectPageBtn" onclick="useDirectPage()">Use this Page directly</button>
+
+  <div class="log-box" id="logBox"></div>
+
+  <div id="pageResults" style="display:none;margin-top:16px;">
+    <div class="select-label">Select a Page to analyse</div>
+    <div id="pageList"></div>
+  </div>
+</div>
+
+<!-- ── SELECTED PAGE BAR ──────────────────────────────────────────────────── -->
+<div class="config-card" id="selectedPageBar" style="display:none;">
+  <h2>Selected Page</h2>
+  <div class="selected-page-info" id="selectedPageInfo"></div>
+  <button class="btn-primary" id="runBtn" onclick="runResearch()">Run Research</button>
+</div>
+
+<!-- ── RESULTS ───────────────────────────────────────────────────────────── -->
+<div id="results" style="display:none;">
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Unique Ads</div>
+      <div class="metric-value" id="m-total">—</div>
+      <div class="metric-sub" id="m-total-sub"></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Active</div>
+      <div class="metric-value" id="m-active">—</div>
+      <div class="metric-sub" id="m-inactive"></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Platforms</div>
+      <div class="metric-value" id="m-platforms">—</div>
+      <div class="metric-sub">placements</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Page</div>
+      <div class="metric-value" id="m-page" style="font-size:15px;line-height:1.4;">—</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Creative Format Breakdown</div>
+    <div id="formats"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Top CTAs</div>
+    <div id="ctas"></div>
+  </div>
+
+  <div class="section" id="themesSection" style="display:none;">
+    <div class="section-title">Creative Themes</div>
+    <div id="themes"></div>
+  </div>
+
+  <div class="section" id="summarySection" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="section-title" style="margin:0;">Creative Strategy Summary</div>
+      <button class="btn-secondary" id="summaryBtn" onclick="generateCampaignSummary()" style="width:auto;padding:6px 14px;margin:0;font-size:12px;">✨ Generate</button>
+    </div>
+    <div id="summaryContent" style="font-size:13px;line-height:1.8;color:var(--text-sub);">Click Generate to get a strategic write-up based on all ads.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Ad Creatives</div>
+
+    <div class="filter-bar" id="filterBar" style="display:none;">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('active',this)">Active only</button>
+      <button class="filter-btn" onclick="setFilter('inactive',this)">Inactive only</button>
+      <button class="filter-btn" onclick="setFilter('video',this)">Video</button>
+      <button class="filter-btn" onclick="setFilter('image',this)">Image</button>
+      <button class="filter-btn" onclick="setFilter('carousel',this)">Carousel</button>
+      <button class="filter-btn" onclick="setFilter('top',this)">Top scored ↑</button>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <div class="dedup-note" id="dedupNote"></div>
+      <button class="btn-secondary" id="genAllBtn" onclick="generateAllSummaries()" style="margin-top:0;">✨ Generate ROAST scores for all ads</button>
+    </div>
+
+    <div class="ad-grid" id="adGrid"></div>
+    <div class="show-more" id="showMoreWrap" style="display:none;">
+      <button onclick="showMore()">Show more ads</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Export for Claude</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Copy the JSON below and paste it into Claude to generate a full written competitor report.</p>
+    <textarea id="jsonExport" style="width:100%;height:100px;background:var(--input);border:0.5px solid var(--border);border-radius:8px;padding:12px;color:var(--muted);font-family:monospace;font-size:11px;resize:vertical;outline:none;" readonly></textarea>
+    <button class="btn-secondary" onclick="copyJson()">Copy JSON to clipboard</button>
+  </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let rawData = [];
+let renderedCount = 0;
+let activeFilter = 'all';
+let selectedPage = null;
+let abortController = null;
+const PAGE_SIZE = 9;
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+function log(msg, type = '') {
+  const box = document.getElementById('logBox');
+  box.classList.add('visible');
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  const ts = new Date().toLocaleTimeString();
+  line.textContent = `[${ts}] ${msg}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearLog() {
+  const box = document.getElementById('logBox');
+  box.innerHTML = '';
+  box.classList.remove('visible');
+}
+
+// ── How It Works toggle ─────────────────────────────────────────────────────
+function toggleHowItWorks() {
+  const body = document.getElementById('howBody');
+  const chevron = document.getElementById('howChevron');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+// ── Abort ───────────────────────────────────────────────────────────────────
+function abortRun() {
+  if (abortController) {
+    abortController.abort();
+    log('Abort requested.', 'err');
+  }
+}
+
+function showAbortBtn(show) {
+  document.getElementById('abortBtn').style.display = show ? 'block' : 'none';
+}
+
+// ── API calls (to our Express backend) ─────────────────────────────────────
+async function apiPost(endpoint, body) {
+  abortController = new AbortController();
+  showAbortBtn(true);
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: abortController.signal,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json();
+  } finally {
+    showAbortBtn(false);
+    abortController = null;
+  }
+}
+
+// ── Page ID extractor ───────────────────────────────────────────────────────
+function extractPageId(input) {
+  input = input.trim();
+  if (/^\d+$/.test(input)) return { id: input, username: null };
+  const m1 = input.match(/view_all_page_id=(\d+)/);
+  if (m1) return { id: m1[1], username: null };
+  const m2 = input.match(/facebook\.com\/pages\/[^/]+\/(\d+)/);
+  if (m2) return { id: m2[1], username: null };
+  const m3 = input.match(/[?&]id=(\d+)/);
+  if (m3) return { id: m3[1], username: null };
+  const m4 = input.match(/facebook\.com\/([^/?#]+)/);
+  if (m4 && m4[1] && !['ads', 'pages', 'profile', 'groups'].includes(m4[1])) {
+    return { id: null, username: m4[1] };
+  }
+  if (/^[a-zA-Z0-9._-]+$/.test(input) && input.length > 2) {
+    return { id: null, username: input };
+  }
+  return { id: null, username: null };
+}
+
+// ── Search Pages ────────────────────────────────────────────────────────────
+async function searchPages() {
+  const searchTerm = document.getElementById('searchTerm').value.trim();
+  const country = document.getElementById('country').value;
+  if (!searchTerm) { log('Please enter a brand or competitor name', 'err'); return; }
+
+  const btn = document.getElementById('searchPagesBtn');
+  btn.disabled = true;
+  document.getElementById('pageResults').style.display = 'none';
+  document.getElementById('selectedPageBar').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  clearLog();
+
+  try {
+    log(`Searching Facebook Pages for "${searchTerm}"...`);
+    const data = await apiPost('/api/search-pages', { searchTerm, country });
+
+    if (!data.pages || !data.pages.length) {
+      log(`No Pages found for "${searchTerm}" in ${country === 'ALL' ? 'any country' : country}. Try the direct Page URL/ID input below.`, 'err');
+      return;
+    }
+
+    log(`Found ${data.pages.length} matching Page${data.pages.length !== 1 ? 's' : ''}. Select one below.`, 'ok');
+    renderPageList(data.pages);
+  } catch (e) {
+    if (e.name === 'AbortError') log('Search aborted.', 'err');
+    else log(`Error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Use Direct Page ─────────────────────────────────────────────────────────
+async function useDirectPage() {
+  const input = document.getElementById('directPageInput').value.trim();
+  const country = document.getElementById('country').value;
+  if (!input) { log('Please paste a Page URL, username, or Page ID', 'err'); return; }
+
+  document.getElementById('pageResults').style.display = 'none';
+  document.getElementById('selectedPageBar').style.display = 'none';
+  clearLog();
+
+  const { id: numericId, username } = extractPageId(input);
+
+  if (numericId) {
+    selectedPage = { pageId: numericId, pageName: username || `Page ${numericId}`, pageProfilePictureUrl: '', pageCategories: [], pageLikeCount: 0 };
+    showSelectedPage();
+    log(`Using Page ID ${numericId} directly — click Run Research to pull ads.`, 'ok');
+    return;
+  }
+
+  const searchName = username || input;
+  log(`Resolving Page from "${searchName}"...`);
+  const btn = document.getElementById('useDirectPageBtn');
+  btn.disabled = true;
+
+  try {
+    const data = await apiPost('/api/search-pages', { searchTerm: searchName, country });
+
+    if (!data.pages || !data.pages.length) {
+      log(`No ads found for "${searchName}". Try pasting the numeric Page ID from the Ad Library URL instead.`, 'err');
+      return;
+    }
+
+    renderPageList(data.pages);
+    log(`Found ${data.pages.length} Page${data.pages.length !== 1 ? 's' : ''}. Select one below.`, 'ok');
+  } catch (e) {
+    if (e.name === 'AbortError') log('Aborted.', 'err');
+    else log(`Error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Render Page List ────────────────────────────────────────────────────────
+function renderPageList(pages) {
+  window._pageCandidates = pages;
+  const listDiv = document.getElementById('pageList');
+  listDiv.innerHTML = pages.map((p, i) => `
+    <div class="page-card" onclick="selectPage(${i})">
+      ${p.pageProfilePictureUrl
+        ? `<img src="${p.pageProfilePictureUrl}" referrerpolicy="no-referrer" onerror="this.style.display='none'" />`
+        : `<div class="page-avatar-placeholder"></div>`}
+      <div class="page-info">
+        <div class="page-name">${esc(p.pageName)}</div>
+        <div class="page-meta">${esc((p.pageCategories || []).join(', '))}${p.pageLikeCount ? ` · ${p.pageLikeCount.toLocaleString()} likes` : ''} · ${p.adCount} ad${p.adCount !== 1 ? 's' : ''} found</div>
+      </div>
+      <div class="page-arrow">Select →</div>
+    </div>
+  `).join('');
+  document.getElementById('pageResults').style.display = 'block';
+}
+
+function selectPage(index) {
+  selectedPage = window._pageCandidates[index];
+  document.getElementById('pageResults').style.display = 'none';
+  showSelectedPage();
+}
+
+function showSelectedPage() {
+  document.getElementById('selectedPageInfo').innerHTML = `
+    ${selectedPage.pageProfilePictureUrl
+      ? `<img src="${selectedPage.pageProfilePictureUrl}" referrerpolicy="no-referrer" onerror="this.style.display='none'" />`
+      : ''}
+    <div>
+      <div class="page-name">${esc(selectedPage.pageName)}</div>
+      <div class="page-meta">Page ID: ${esc(selectedPage.pageId)}${(selectedPage.pageCategories || []).length ? ' · ' + esc(selectedPage.pageCategories.join(', ')) : ''}</div>
+    </div>
+    <button class="btn-change-page" onclick="changePage()">Change Page</button>
+  `;
+  document.getElementById('selectedPageBar').style.display = 'block';
+  document.getElementById('selectedPageBar').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function changePage() {
+  selectedPage = null;
+  document.getElementById('selectedPageBar').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('pageResults').style.display = 'block';
+}
+
+// ── Run Research ────────────────────────────────────────────────────────────
+async function runResearch() {
+  if (!selectedPage) { log('Please select a Page first', 'err'); return; }
+  const country = document.getElementById('country').value;
+  const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  document.getElementById('results').style.display = 'none';
+  clearLog();
+
+  try {
+    log(`Starting research on "${selectedPage.pageName}" (Page ID: ${selectedPage.pageId})...`);
+    log('This takes up to 90 seconds — polling Apify for completion...');
+
+    const data = await apiPost('/api/run-research', {
+      pageId: selectedPage.pageId,
+      pageName: selectedPage.pageName,
+      country,
+      maxResults,
+    });
+
+    log(`Fetched ${data.rawCount} entries → ${data.ads.length} unique ads after deduplication.`, 'ok');
+    rawData = data.ads;
+    renderResults(data.ads, data.rawCount, selectedPage.pageName);
+  } catch (e) {
+    if (e.name === 'AbortError') log('Research aborted.', 'err');
+    else log(`Error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getSnap(ad) { return ad.snapshot || {}; }
+
+function getBody(ad) {
+  const snap = getSnap(ad);
+  const body = (snap.body || {}).text || '';
+  if (body) return body;
+  return (snap.cards || []).map(c => c.body || '').filter(Boolean).join(' | ');
+}
+
+function getMedia(ad) {
+  const snap = getSnap(ad);
+  const fmt = (snap.displayFormat || '').toUpperCase();
+  if (fmt === 'VIDEO') return 'video';
+  if (fmt === 'CAROUSEL' || fmt === 'DCO') return 'carousel';
+  if (fmt === 'IMAGE') return 'image';
+  if ((snap.videos || []).length) return 'video';
+  if ((snap.cards || []).length) return 'carousel';
+  return 'image';
+}
+
+function getImageUrl(ad) {
+  const snap = getSnap(ad);
+  if (snap.images && snap.images.length) {
+    const im = snap.images[0];
+    return im.originalImageUrl || im.resizedImageUrl || im.original_image_url || im.resized_image_url;
+  }
+  if (snap.cards && snap.cards.length) {
+    for (const c of snap.cards) {
+      const url = c.originalImageUrl || c.resizedImageUrl || c.original_image_url || c.resized_image_url || c.videoPreviewImageUrl;
+      if (url) return url;
+    }
+  }
+  if (snap.videos && snap.videos.length) {
+    const v = snap.videos[0];
+    return v.videoPreviewImageUrl || v.video_preview_image_url;
+  }
+  if (snap.extraImages && snap.extraImages.length) {
+    const im = snap.extraImages[0];
+    return im.originalImageUrl || im.resizedImageUrl;
+  }
+  return null;
+}
+
+function getVideoUrl(ad) {
+  const snap = getSnap(ad);
+  if (snap.videos && snap.videos.length) {
+    const v = snap.videos[0];
+    return v.videoSdUrl || v.videoHdUrl || v.video_sd_url || v.video_hd_url;
+  }
+  if (snap.cards && snap.cards.length) {
+    for (const c of snap.cards) {
+      const url = c.videoSdUrl || c.videoHdUrl;
+      if (url) return url;
+    }
+  }
+  return null;
+}
+
+function getRunDuration(ad) {
+  const start = ad.startDate ? new Date(ad.startDate * 1000) : null;
+  const end = ad.isActive ? new Date() : (ad.endDate ? new Date(ad.endDate * 1000) : null);
+  if (!start || !end) return null;
+  return Math.round((end - start) / (1000 * 60 * 60 * 24));
+}
+
+function runDurationLabel(days) {
+  if (days === null) return null;
+  if (days >= 30) return { text: `${days}d running`, cls: 'long' };
+  if (days >= 7)  return { text: `${days}d running`, cls: 'med' };
+  return { text: `${days}d running`, cls: 'short' };
+}
+
+function platformBadges(platforms) {
+  const map = {
+    FACEBOOK: ['fb', 'FB'],
+    INSTAGRAM: ['ig', 'IG'],
+    MESSENGER: ['msg', 'MSG'],
+    THREADS: ['thr', 'THR'],
+    AUDIENCE_NETWORK: ['an', 'AN'],
+    WHATSAPP: ['msg', 'WA'],
+  };
+  return (platforms || []).map(p => {
+    const [cls, label] = map[p] || ['', p.slice(0, 3)];
+    return `<span class="platform-badge ${cls}">${label}</span>`;
+  }).join('');
+}
+
+function extractDomain(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url.startsWith('http') ? url : 'https://' + url);
+    return u.hostname.replace(/^www\./, '');
+  } catch { return null; }
+}
+
+function extractThemes(ads) {
+  const themes = [
+    { label: 'Free trial / offer',        keywords: ['free trial','free pass','complimentary','try for free','free class'] },
+    { label: 'Limited time / urgency',    keywords: ['limited','now','today','last chance','don\'t miss','expires','hurry','ends'] },
+    { label: 'Transformation / results',  keywords: ['transform','results','achieve','progress','goal','fitter','stronger','better'] },
+    { label: 'Community / belonging',     keywords: ['community','together','join us','family','people','friends','belong'] },
+    { label: 'Discount / price',          keywords: ['off','save','discount','deal','promo','price','affordable','value'] },
+    { label: 'Health & wellness',         keywords: ['health','wellness','wellbeing','mental','stress','balance','mindful'] },
+    { label: 'Expert / credibility',      keywords: ['expert','certified','professional','trusted','proven','award','best'] },
+    { label: 'New / launch',              keywords: ['new','launch','introducing','now open','grand opening','just arrived'] },
+    { label: 'Social proof',              keywords: ['members','reviews','rated','stars','customers','people love','testimonial'] },
+    { label: 'Convenience / access',      keywords: ['anytime','anywhere','online','app','easy','flexible','on demand'] },
+  ];
+  const allCopy = ads.map(a => getBody(a).toLowerCase()).join(' ');
+  return themes
+    .map(t => ({ ...t, hits: t.keywords.filter(k => allCopy.includes(k)).length }))
+    .filter(t => t.hits > 0)
+    .sort((a, b) => b.hits - a.hits);
+}
+
+// ── Render Results ──────────────────────────────────────────────────────────
+function renderResults(ads, rawCount, pageName) {
+  document.getElementById('results').style.display = 'block';
+
+  const active = ads.filter(a => a.isActive).length;
+  const inactive = ads.length - active;
+  const allPlatforms = new Set();
+  ads.forEach(a => (a.publisherPlatform || []).forEach(p => allPlatforms.add(p)));
+
+  document.getElementById('m-total').textContent = ads.length;
+  document.getElementById('m-total-sub').textContent = rawCount > ads.length ? `${rawCount - ads.length} duplicates removed` : '';
+  document.getElementById('m-active').textContent = active;
+  document.getElementById('m-inactive').textContent = `${inactive} inactive`;
+  document.getElementById('m-platforms').textContent = allPlatforms.size;
+  document.getElementById('m-page').textContent = pageName;
+
+  const dedupNote = document.getElementById('dedupNote');
+  if (rawCount > ads.length) {
+    dedupNote.textContent = `${rawCount} total entries collapsed into ${ads.length} unique ads — variants of the same creative are grouped.`;
+    dedupNote.style.display = 'block';
+  } else {
+    dedupNote.style.display = 'none';
+  }
+
+  const fmtCounts = { image: 0, video: 0, carousel: 0 };
+  ads.forEach(a => { const t = getMedia(a); fmtCounts[t] = (fmtCounts[t] || 0) + 1; });
+  const total = ads.length || 1;
+  document.getElementById('formats').innerHTML = Object.entries(fmtCounts).map(([k, v]) => {
+    const pct = Math.round(v / total * 100);
+    return `<div class="bar-row">
+      <div class="bar-label">${k}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-pct">${v} (${pct}%)</div>
+    </div>`;
+  }).join('');
+
+  const ctaCounts = {};
+  ads.forEach(a => {
+    const cta = getSnap(a).ctaText || 'None';
+    ctaCounts[cta] = (ctaCounts[cta] || 0) + 1;
+  });
+  document.getElementById('ctas').innerHTML = Object.entries(ctaCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([k, v]) => `<span class="pill">${esc(k)} <span class="count">${v}</span></span>`)
+    .join('');
+
+  const themes = extractThemes(ads);
+  if (themes.length) {
+    document.getElementById('themes').innerHTML = themes.map(t =>
+      `<span class="theme-chip"><span class="theme-dot"></span>${esc(t.label)}<span class="theme-count">${t.hits} signal${t.hits !== 1 ? 's' : ''}</span></span>`
+    ).join('');
+    document.getElementById('themesSection').style.display = 'block';
+  }
+
+  document.getElementById('summarySection').style.display = 'block';
+  document.getElementById('summaryContent').textContent = 'Click Generate to get a strategic write-up based on all ads.';
+  document.getElementById('summaryContent').style.color = 'var(--text-sub)';
+  document.getElementById('summaryBtn').disabled = false;
+  document.getElementById('summaryBtn').textContent = '✨ Generate';
+
+  activeFilter = 'all';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filter-btn').classList.add('active');
+  document.getElementById('filterBar').style.display = 'flex';
+
+  renderedCount = 0;
+  document.getElementById('adGrid').innerHTML = '';
+  showMore();
+
+  document.getElementById('jsonExport').value = JSON.stringify(ads, null, 2);
+
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Filter ──────────────────────────────────────────────────────────────────
+function setFilter(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderedCount = 0;
+  document.getElementById('adGrid').innerHTML = '';
+  showMore();
+}
+
+function getFilteredData() {
+  let data = [...rawData];
+  if (activeFilter === 'active')   return data.filter(a => a.isActive);
+  if (activeFilter === 'inactive') return data.filter(a => !a.isActive);
+  if (activeFilter === 'video')    return data.filter(a => getMedia(a) === 'video');
+  if (activeFilter === 'image')    return data.filter(a => getMedia(a) === 'image');
+  if (activeFilter === 'carousel') return data.filter(a => getMedia(a) === 'carousel');
+  if (activeFilter === 'top') {
+    return data.filter(a => a._roastTotal).sort((a, b) => (b._roastTotal || 0) - (a._roastTotal || 0));
+  }
+  return data;
+}
+
+// ── Show More (paginated ad grid) ───────────────────────────────────────────
+function showMore() {
+  const grid = document.getElementById('adGrid');
+  const filtered = getFilteredData();
+  const slice = filtered.slice(renderedCount, renderedCount + PAGE_SIZE);
+
+  slice.forEach((ad, sliceIdx) => {
+    const snap = getSnap(ad);
+    const adIdx = renderedCount + sliceIdx;
+    const media = getMedia(ad);
+    const isActive = ad.isActive;
+
+    let body = getBody(ad);
+    let headline = snap.title || '';
+
+    // DCO placeholder fallback
+    if (body === '{{product.brand}}' || headline === '{{product.name}}') {
+      if (snap.cards && snap.cards.length) {
+        const c = snap.cards[0];
+        if (body === '{{product.brand}}') body = c.body || snap.pageName || '';
+        if (headline === '{{product.name}}') headline = c.title || '';
+      }
+    }
+
+    const summary = body.slice(0, 180) + (body.length > 180 ? '…' : '');
+    const img = getImageUrl(ad);
+    const video = getVideoUrl(ad);
+    const link = snap.linkUrl || ad.adLibraryUrl || `https://www.facebook.com/ads/library/?id=${ad.adArchiveId || ad.adArchiveID || ''}`;
+    const domain = extractDomain(snap.linkUrl);
+    const days = getRunDuration(ad);
+    const dur = runDurationLabel(days);
+    const platforms = ad.publisherPlatform || [];
+    const date = ad.startDateFormatted ? ad.startDateFormatted.split('T')[0] : (ad.startDate || '');
+
+    let mediaHtml;
+    if (video) {
+      mediaHtml = `<video src="${video}" muted loop playsinline controls poster="${esc(img || '')}"></video>`;
+    } else if (img) {
+      mediaHtml = `<img src="${img}" loading="lazy" alt="ad creative" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<div class=&quot;no-media&quot;>Preview blocked by Facebook CDN</div>'" />`;
+    } else {
+      mediaHtml = `<div class="no-media">No preview available</div>`;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'ad-card';
+    card.dataset.adIdx = adIdx;
+    card.dataset.copy = body;
+    card.dataset.headline = headline;
+    card.dataset.cta = snap.ctaText || '';
+
+    card.innerHTML = `
+      <div class="ad-media">
+        ${mediaHtml}
+        ${media === 'carousel' ? '<div class="carousel-badge">Carousel</div>' : ''}
+        <div class="score-badge"></div>
+      </div>
+      <div class="ad-body">
+        <div class="ad-meta">
+          <span class="tag ${isActive ? 'tag-active' : 'tag-inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
+          <span class="tag tag-${media}">${media}</span>
+          ${ad._variantCount > 1 ? `<span class="variants-badge">${ad._variantCount} variants</span>` : ''}
+        </div>
+
+        ${headline ? `<div class="ad-headline">${esc(headline)}</div>` : ''}
+
+        <div class="platform-badges">
+          ${platformBadges(platforms)}
+          ${dur
+            ? `<span class="run-duration ${dur.cls}">${dur.text}</span>`
+            : `<span class="ad-date">${esc(ad._dateRange || date)}</span>`}
+        </div>
+
+        ${domain ? `
+          <div class="ad-meta-row">
+            <span style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Landing page</span>
+            <span class="landing-domain" title="${esc(snap.linkUrl || '')}">${esc(domain)}</span>
+          </div>` : ''}
+
+        <div>
+          <div class="ad-summary-label">Ad copy</div>
+          <div class="ad-summary">${esc(summary) || '—'}</div>
+        </div>
+
+        <div class="ai-summary-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div class="ad-summary-label" style="margin:0;">ROAST score</div>
+            <div class="score-num"></div>
+          </div>
+          <div class="roast-bar-track">
+            <div class="roast-bar-fill"></div>
+          </div>
+          <div class="ai-summary">—</div>
+        </div>
+
+        <div class="ad-cta-row">
+          <span class="ad-cta">${esc(snap.ctaText || '')}</span>
+          <div style="display:flex;gap:10px;align-items:center;">
+            ${(img || video) ? `<button class="btn-dl" onclick="downloadMedia('${esc(video || img)}','ad_${esc(String(ad.adArchiveId || ad.adArchiveID || adIdx))}.${video ? 'mp4' : 'jpg'}')" title="Download creative">⬇ Save</button>` : ''}
+            ${link ? `<a class="ad-link" href="${esc(link)}" target="_blank" rel="noopener">View ad ↗</a>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  renderedCount += slice.length;
+  const all = getFilteredData();
+  document.getElementById('showMoreWrap').style.display = renderedCount < all.length ? 'block' : 'none';
+}
+
+// ── ROAST Scores ─────────────────────────────────────────────────────────────
+async function generateAllSummaries() {
+  const btn = document.getElementById('genAllBtn');
+  const cards = Array.from(document.querySelectorAll('.ad-card'));
+  if (!cards.length) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Scoring ads...';
+
+  for (let i = 0; i < cards.length; i++) {
+    const card = cards[i];
+    const box = card.querySelector('.ai-summary');
+    const scoreBadge = card.querySelector('.score-badge');
+
+    box.textContent = `Scoring (${i + 1}/${cards.length})…`;
+    box.className = 'ai-summary loading';
+
+    const copy = card.dataset.copy || '';
+    const headline = card.dataset.headline || '';
+    const cta = card.dataset.cta || '';
+
+    if (!copy && !headline) {
+      box.textContent = 'No copy available to score.';
+      box.className = 'ai-summary error';
+      continue;
+    }
+
+    try {
+      const result = await fetch('/api/roast-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headline, copy, cta }),
+      });
+
+      if (!result.ok) {
+        const err = await result.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${result.status}`);
+      }
+
+      const parsed = await result.json();
+      const score = parsed.score || 0;
+      const adIdx = parseInt(card.dataset.adIdx);
+      if (!isNaN(adIdx) && rawData[adIdx]) rawData[adIdx]._roastTotal = score;
+
+      const scoreColor = score >= 7 ? 'var(--accent)' : score >= 4 ? 'var(--orange)' : 'var(--red)';
+
+      box.textContent = parsed.blurb || '—';
+      box.className = 'ai-summary';
+
+      if (scoreBadge) {
+        scoreBadge.textContent = `${score}/10`;
+        scoreBadge.style.display = 'block';
+        scoreBadge.style.borderColor = scoreColor;
+        scoreBadge.style.color = scoreColor;
+      }
+
+      const scoreNumEl = card.querySelector('.score-num');
+      if (scoreNumEl) {
+        scoreNumEl.textContent = `${score}/10`;
+        scoreNumEl.style.color = scoreColor;
+        scoreNumEl.style.display = 'block';
+      }
+
+      const barTrack = card.querySelector('.roast-bar-track');
+      const barFill = card.querySelector('.roast-bar-fill');
+      if (barTrack && barFill) {
+        barTrack.style.display = 'block';
+        barFill.style.background = scoreColor;
+        requestAnimationFrame(() => requestAnimationFrame(() => { barFill.style.width = `${score * 10}%`; }));
+      }
+    } catch (e) {
+      box.textContent = `Error: ${e.message}`;
+      box.className = 'ai-summary error';
+    }
+
+    btn.textContent = `⏳ Scoring ads… (${i + 1}/${cards.length})`;
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ Generate ROAST scores for all ads';
+}
+
+// ── Campaign Summary ─────────────────────────────────────────────────────────
+async function generateCampaignSummary() {
+  const btn = document.getElementById('summaryBtn');
+  const content = document.getElementById('summaryContent');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Analysing...';
+  content.textContent = 'Reading all ads and generating strategic summary...';
+  content.style.color = 'var(--muted)';
+
+  const themes = Array.from(document.querySelectorAll('.theme-chip')).map(c => c.textContent.trim());
+
+  try {
+    const result = await fetch('/api/campaign-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ads: rawData, themes }),
+    });
+
+    if (!result.ok) {
+      const err = await result.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${result.status}`);
+    }
+
+    const parsed = await result.json();
+    content.style.color = 'var(--text-sub)';
+    content.innerHTML = parsed.sections.map((s, idx) => `
+      ${idx > 0 ? '<div style="height:1px;background:var(--border);margin-bottom:18px;"></div>' : ''}
+      <div style="margin-bottom:18px;">
+        <div style="font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:5px;letter-spacing:-0.1px;">${esc(s.headline)}</div>
+        <div style="font-size:13px;line-height:1.75;color:var(--text-sub);">${esc(s.summary)}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    content.textContent = `Error: ${e.message}`;
+    content.style.color = 'var(--red)';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ Regenerate';
+}
+
+// ── Download Media ───────────────────────────────────────────────────────────
+async function downloadMedia(url, filename) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Fetch failed');
+    const blob = await response.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  } catch {
+    window.open(url, '_blank');
+  }
+}
+
+// ── Copy JSON ────────────────────────────────────────────────────────────────
+function copyJson() {
+  const ta = document.getElementById('jsonExport');
+  ta.select();
+  document.execCommand('copy');
+  const btn = event.target;
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.textContent = 'Copy JSON to clipboard'; }, 2000);
+}
+</script>
+</body>
+</html>
