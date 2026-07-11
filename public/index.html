@@ -1163,7 +1163,7 @@ async function runResearch() {
 
   try {
     log(`Starting research on "${selectedPage.pageName}" (Page ID: ${selectedPage.pageId})...`);
-    log('This takes up to 90 seconds — polling Apify for completion...');
+    log('This takes up to 3 minutes — polling Apify for completion...');
 
     const data = await apiPost('/api/run-research', {
       pageId: selectedPage.pageId,

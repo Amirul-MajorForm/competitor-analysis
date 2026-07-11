@@ -12,7 +12,7 @@ app.use(express.static(join(__dirname, 'public')));
 const APIFY_BASE = 'https://api.apify.com/v2';
 const ANTHROPIC_BASE = 'https://api.anthropic.com/v1';
 const POLL_INTERVAL_MS = 5000;
-const MAX_POLL_ATTEMPTS = 18; // 90 seconds
+const MAX_POLL_ATTEMPTS = 36; // 3 minutes
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -58,9 +58,10 @@ async function pollRun(token, runId) {
   throw new Error(`Timed out after ${MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS / 1000}s — run was aborted`);
 }
 
-async function fetchDataset(token, datasetId) {
+async function fetchDataset(token, datasetId, limit) {
+  const limitParam = limit ? `&limit=${limit}` : '';
   const res = await fetch(
-    `${APIFY_BASE}/datasets/${datasetId}/items?token=${token}&format=json`
+    `${APIFY_BASE}/datasets/${datasetId}/items?token=${token}&format=json${limitParam}`
   );
   if (!res.ok) throw new Error(`Dataset fetch error ${res.status}`);
   return res.json();
@@ -148,13 +149,13 @@ app.post('/api/search-pages', async (req, res) => {
 
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
-      count: 10,
+      maxResults: 10,
       scrapeAdDetails: true,
       'scrapePageAds.activeStatus': 'all',
     });
 
     await pollRun(token, runId);
-    const ads = await fetchDataset(token, datasetId);
+    const ads = await fetchDataset(token, datasetId, 10);
 
     if (!ads.length) {
       return res.json({ pages: [], rawCount: 0 });
@@ -193,13 +194,14 @@ app.post('/api/run-research', async (req, res) => {
 
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
-      count: cappedResults,
+      maxResults: cappedResults,
       scrapeAdDetails: true,
       'scrapePageAds.activeStatus': 'all',
     });
 
     await pollRun(token, runId);
-    const ads = await fetchDataset(token, datasetId);
+    // Pass limit to dataset fetch as a hard backstop in case actor ignores maxResults
+    const ads = await fetchDataset(token, datasetId, cappedResults);
     const rawCount = ads.length;
     const deduped = deduplicateAds(ads);
 
