@@ -785,51 +785,51 @@
 <div class="config-card">
   <h2>Search Configuration</h2>
 
-  <div class="row">
-    <div class="field">
-      <label>Competitor / Brand Name</label>
-      <input type="text" id="searchTerm" placeholder="e.g. OATSIDE, Nike Singapore" />
-      <div class="hint">We'll search for matching Pages first</div>
-    </div>
-    <div class="field">
-      <label>Country</label>
-      <select id="country">
-        <option value="SG" selected>Singapore</option>
-        <option value="MY">Malaysia</option>
-        <option value="ID">Indonesia</option>
-        <option value="TH">Thailand</option>
-        <option value="VN">Vietnam</option>
-        <option value="PH">Philippines</option>
-        <option value="HK">Hong Kong</option>
-        <option value="TW">Taiwan</option>
-        <option value="JP">Japan</option>
-        <option value="KR">South Korea</option>
-        <option value="CN">China</option>
-        <option value="IN">India</option>
-        <option value="AU">Australia</option>
-        <option value="NZ">New Zealand</option>
-        <option value="GB">United Kingdom</option>
-        <option value="US">United States</option>
-        <option value="CA">Canada</option>
-        <option value="DE">Germany</option>
-        <option value="FR">France</option>
-        <option value="ES">Spain</option>
-        <option value="IT">Italy</option>
-        <option value="NL">Netherlands</option>
-        <option value="AE">United Arab Emirates</option>
-        <option value="SA">Saudi Arabia</option>
-        <option value="BR">Brazil</option>
-        <option value="MX">Mexico</option>
-        <option value="ZA">South Africa</option>
-        <option value="NG">Nigeria</option>
-        <option value="ALL">All countries</option>
-      </select>
-    </div>
+  <div class="field">
+    <label>Country <span style="color:var(--muted);font-weight:400;">(applies to all searches)</span></label>
+    <select id="country">
+      <option value="SG" selected>Singapore</option>
+      <option value="MY">Malaysia</option>
+      <option value="ID">Indonesia</option>
+      <option value="TH">Thailand</option>
+      <option value="VN">Vietnam</option>
+      <option value="PH">Philippines</option>
+      <option value="HK">Hong Kong</option>
+      <option value="TW">Taiwan</option>
+      <option value="JP">Japan</option>
+      <option value="KR">South Korea</option>
+      <option value="CN">China</option>
+      <option value="IN">India</option>
+      <option value="AU">Australia</option>
+      <option value="NZ">New Zealand</option>
+      <option value="GB">United Kingdom</option>
+      <option value="US">United States</option>
+      <option value="CA">Canada</option>
+      <option value="DE">Germany</option>
+      <option value="FR">France</option>
+      <option value="ES">Spain</option>
+      <option value="IT">Italy</option>
+      <option value="NL">Netherlands</option>
+      <option value="AE">United Arab Emirates</option>
+      <option value="SA">Saudi Arabia</option>
+      <option value="BR">Brazil</option>
+      <option value="MX">Mexico</option>
+      <option value="ZA">South Africa</option>
+      <option value="NG">Nigeria</option>
+      <option value="ALL">All countries</option>
+    </select>
+    <div class="hint">Filters ads by the country they target — set this before searching or pasting a Page ID</div>
+  </div>
+
+  <div class="field">
+    <label>Competitor / Brand Name</label>
+    <input type="text" id="searchTerm" placeholder="e.g. OATSIDE, Nike Singapore" />
+    <div class="hint">We'll search for matching Pages first</div>
   </div>
 
   <button class="btn-primary" id="searchPagesBtn" onclick="searchPages()">Find matching Pages</button>
   <button class="btn-abort" id="abortBtn" onclick="abortRun()">Abort current run</button>
-  <div class="hint" style="margin-top:8px;">Page search is capped at 10 results and a 90-second timeout to protect your Apify credits.</div>
+  <div class="hint" style="margin-top:8px;">Results are capped at 20 ads per run to protect your Apify credits.</div>
 
   <div class="or-divider">or</div>
 

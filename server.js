@@ -149,13 +149,15 @@ app.post('/api/search-pages', async (req, res) => {
 
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
+      count: 10,
       maxResults: 10,
+      resultsLimit: 10,
       scrapeAdDetails: true,
       'scrapePageAds.activeStatus': 'all',
     });
 
     await pollRun(token, runId);
-    const ads = await fetchDataset(token, datasetId, 10);
+    const ads = (await fetchDataset(token, datasetId, 10)).slice(0, 10);
 
     if (!ads.length) {
       return res.json({ pages: [], rawCount: 0 });
@@ -192,13 +194,15 @@ app.post('/api/run-research', async (req, res) => {
     const adLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all${countryParam}&media_type=all&view_all_page_id=${pageId}&search_type=page`;
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
+      count: 20,
       maxResults: 20,
+      resultsLimit: 20,
       scrapeAdDetails: true,
       'scrapePageAds.activeStatus': 'all',
     });
 
     await pollRun(token, runId);
-    const ads = await fetchDataset(token, datasetId, 20);
+    const ads = (await fetchDataset(token, datasetId, 20)).slice(0, 20);
     const rawCount = ads.length;
     const deduped = deduplicateAds(ads);
 
