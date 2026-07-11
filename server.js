@@ -189,7 +189,7 @@ app.post('/api/run-research', async (req, res) => {
       ? `&country=${country}&is_targeted_country=false`
       : '';
     const adLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all${countryParam}&media_type=all&view_all_page_id=${pageId}&search_type=page`;
-    const cappedResults = Math.min(parseInt(maxResults) || 20, 20);
+    const cappedResults = Math.min(parseInt(maxResults) || 30, 30);
 
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
