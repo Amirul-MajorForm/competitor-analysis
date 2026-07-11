@@ -190,18 +190,15 @@ app.post('/api/run-research', async (req, res) => {
       ? `&country=${country}&is_targeted_country=false`
       : '';
     const adLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all${countryParam}&media_type=all&view_all_page_id=${pageId}&search_type=page`;
-    const cappedResults = Math.min(parseInt(maxResults) || 30, 30);
-
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
-      maxResults: cappedResults,
+      maxResults: 20,
       scrapeAdDetails: true,
       'scrapePageAds.activeStatus': 'all',
     });
 
     await pollRun(token, runId);
-    // Pass limit to dataset fetch as a hard backstop in case actor ignores maxResults
-    const ads = await fetchDataset(token, datasetId, cappedResults);
+    const ads = await fetchDataset(token, datasetId, 20);
     const rawCount = ads.length;
     const deduped = deduplicateAds(ads);
 

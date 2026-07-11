@@ -785,7 +785,7 @@
 <div class="config-card">
   <h2>Search Configuration</h2>
 
-  <div class="row3">
+  <div class="row">
     <div class="field">
       <label>Competitor / Brand Name</label>
       <input type="text" id="searchTerm" placeholder="e.g. OATSIDE, Nike Singapore" />
@@ -824,11 +824,6 @@
         <option value="NG">Nigeria</option>
         <option value="ALL">All countries</option>
       </select>
-    </div>
-    <div class="field">
-      <label>Max Results <span style="color:var(--muted);font-weight:400;">(max 30)</span></label>
-      <input type="number" id="maxResults" value="30" min="5" max="30" />
-      <div class="hint">Capped at 30 to protect Apify credits</div>
     </div>
   </div>
 
@@ -1154,7 +1149,6 @@ function changePage() {
 async function runResearch() {
   if (!selectedPage) { log('Please select a Page first', 'err'); return; }
   const country = document.getElementById('country').value;
-  const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
 
   const btn = document.getElementById('runBtn');
   btn.disabled = true;
@@ -1169,7 +1163,6 @@ async function runResearch() {
       pageId: selectedPage.pageId,
       pageName: selectedPage.pageName,
       country,
-      maxResults,
     });
 
     log(`Fetched ${data.rawCount} entries → ${data.ads.length} unique ads after deduplication.`, 'ok');
