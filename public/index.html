@@ -2064,41 +2064,58 @@ function renderCategoryAnalysis(analysis) {
             <div class="cat-ex-body">${esc(a.body) || ''}</div>
           </div>
         </div>`;
-      }).join('')}</div>` : '';
+      }).join('')}</div>
+      <button class="cat-download-btn" style="margin-top:8px;font-size:11px;padding:5px 12px;" onclick="downloadCreatives(${si})">Download these creatives</button>` : '';
       return `<div class="cat-analysis-section">
         <h4>${esc(s.headline)}</h4>
         <p>${esc(s.summary)}</p>
         ${adsHtml}
       </div>`;
     }).join('')}
-    <button class="cat-download-btn" onclick="downloadAnalysisCsv()">Download analysis as CSV</button>
+    <button class="cat-download-btn" onclick="downloadCreatives()">Download all ad creatives (ZIP)</button>
   </div>`;
   el.style.display = 'block';
 }
 
-function downloadAnalysisCsv() {
+async function downloadCreatives(sectionIndex) {
   if (!lastAnalysisData) return;
-  const samples = lastAnalysisData.sampleAds || [];
-  const rows = [['Theme', 'Summary', 'Example Page', 'Example Headline', 'Example Body', 'Example CTA', 'Active', 'Image URL']];
-  for (const s of lastAnalysisData.sections) {
-    const refs = (s.adRefs || []).slice(0, 3).filter(i => i >= 0 && i < samples.length);
-    if (!refs.length) {
-      rows.push([s.headline, s.summary, '', '', '', '', '', '']);
-    } else {
-      for (const i of refs) {
-        const a = samples[i];
-        rows.push([s.headline, s.summary, a.pageName, a.headline, a.body, a.ctaText || '', a.isActive ? 'Yes' : 'No', a.imageUrl || '']);
-      }
+  const sections = typeof sectionIndex === 'number'
+    ? [lastAnalysisData.sections[sectionIndex]]
+    : lastAnalysisData.sections;
+
+  const btn = event.target;
+  const origText = btn.textContent;
+  btn.textContent = 'Downloading images...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/download-creatives', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sections,
+        sampleAds: lastAnalysisData.sampleAds || [],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Download failed' }));
+      throw new Error(err.error);
     }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `creep-creatives-${Date.now()}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    log(`Download failed: ${e.message}`, 'err');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
   }
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `category-analysis-${Date.now()}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 function drillIntoPage(pageId, pageName, pictureUrl) {

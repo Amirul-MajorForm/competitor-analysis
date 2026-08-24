@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(join(__dirname, 'public')));
 
 const APIFY_BASE = 'https://api.apify.com/v2';
@@ -576,6 +576,116 @@ ${pagesSummary}`;
     res.status(500).json({ error: e.message });
   }
 });
+
+// POST /api/download-creatives
+// Fetches ad creative images server-side and returns a ZIP
+app.post('/api/download-creatives', async (req, res) => {
+  const { sections = [], sampleAds = [] } = req.body;
+  if (!sections.length) return res.status(400).json({ error: 'No sections provided' });
+
+  const files = [];
+
+  for (let si = 0; si < sections.length; si++) {
+    const s = sections[si];
+    const folderName = `${si + 1}-${(s.headline || 'theme').replace(/[^a-zA-Z0-9 ]/g, '').trim().replace(/\s+/g, '-').slice(0, 50)}`;
+    const refs = (s.adRefs || []).slice(0, 3).filter(i => i >= 0 && i < sampleAds.length);
+
+    for (let ri = 0; ri < refs.length; ri++) {
+      const ad = sampleAds[refs[ri]];
+      if (!ad.imageUrl) continue;
+      try {
+        const imgRes = await fetch(ad.imageUrl);
+        if (!imgRes.ok) continue;
+        const buf = Buffer.from(await imgRes.arrayBuffer());
+        const ext = (imgRes.headers.get('content-type') || '').includes('png') ? 'png' : 'jpg';
+        const pageSafe = (ad.pageName || 'page').replace(/[^a-zA-Z0-9]/g, '-').slice(0, 30);
+        files.push({ name: `${folderName}/${pageSafe}-${ri + 1}.${ext}`, data: buf });
+      } catch { /* skip failed downloads */ }
+    }
+  }
+
+  if (!files.length) return res.status(404).json({ error: 'No images could be downloaded' });
+
+  // Build a minimal ZIP (store method, no compression — keeps it simple)
+  const zip = buildZip(files);
+  res.set({
+    'Content-Type': 'application/zip',
+    'Content-Disposition': `attachment; filename="creep-creatives-${Date.now()}.zip"`,
+  });
+  res.send(zip);
+});
+
+function buildZip(files) {
+  const centralDir = [];
+  const localParts = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const nameBytes = Buffer.from(file.name, 'utf8');
+    const localHeader = Buffer.alloc(30);
+    localHeader.writeUInt32LE(0x04034b50, 0); // local file header sig
+    localHeader.writeUInt16LE(20, 4); // version needed
+    localHeader.writeUInt16LE(0, 6); // flags
+    localHeader.writeUInt16LE(0, 8); // compression: store
+    localHeader.writeUInt16LE(0, 10); // mod time
+    localHeader.writeUInt16LE(0, 12); // mod date
+    const crc = crc32(file.data);
+    localHeader.writeUInt32LE(crc, 14);
+    localHeader.writeUInt32LE(file.data.length, 18); // compressed size
+    localHeader.writeUInt32LE(file.data.length, 22); // uncompressed size
+    localHeader.writeUInt16LE(nameBytes.length, 26); // name length
+    localHeader.writeUInt16LE(0, 28); // extra field length
+
+    const local = Buffer.concat([localHeader, nameBytes, file.data]);
+    localParts.push(local);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0); // central dir sig
+    central.writeUInt16LE(20, 4); // version made by
+    central.writeUInt16LE(20, 6); // version needed
+    central.writeUInt16LE(0, 8); // flags
+    central.writeUInt16LE(0, 10); // compression
+    central.writeUInt16LE(0, 12); // mod time
+    central.writeUInt16LE(0, 14); // mod date
+    central.writeUInt32LE(crc, 16);
+    central.writeUInt32LE(file.data.length, 20);
+    central.writeUInt32LE(file.data.length, 24);
+    central.writeUInt16LE(nameBytes.length, 28);
+    central.writeUInt16LE(0, 30); // extra length
+    central.writeUInt16LE(0, 32); // comment length
+    central.writeUInt16LE(0, 34); // disk start
+    central.writeUInt16LE(0, 36); // internal attr
+    central.writeUInt32LE(0, 38); // external attr
+    central.writeUInt32LE(offset, 42); // local header offset
+
+    centralDir.push(Buffer.concat([central, nameBytes]));
+    offset += local.length;
+  }
+
+  const centralBuf = Buffer.concat(centralDir);
+  const endRecord = Buffer.alloc(22);
+  endRecord.writeUInt32LE(0x06054b50, 0);
+  endRecord.writeUInt16LE(0, 4); // disk number
+  endRecord.writeUInt16LE(0, 6); // central dir disk
+  endRecord.writeUInt16LE(files.length, 8);
+  endRecord.writeUInt16LE(files.length, 10);
+  endRecord.writeUInt32LE(centralBuf.length, 12);
+  endRecord.writeUInt32LE(offset, 16);
+  endRecord.writeUInt16LE(0, 20);
+
+  return Buffer.concat([...localParts, centralBuf, endRecord]);
+}
+
+function crc32(buf) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) {
+    crc ^= buf[i];
+    for (let j = 0; j < 8; j++) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
 
 // ── Start ───────────────────────────────────────────────────────────────────
 
