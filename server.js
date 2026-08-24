@@ -496,16 +496,18 @@ app.post('/api/category-analysis', async (req, res) => {
   if (!apiKey) return res.status(400).json({ error: 'Anthropic API key not configured' });
   if (!pages.length) return res.status(400).json({ error: 'pages array is required' });
 
+  const sanitize = (str) => (str || '').replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+
   const pagesSummary = pages.map(p => {
     const samples = (p.sampleAds || []).map(s =>
-      `  - "${s.headline}" | "${s.body}" | CTA: ${s.ctaText || 'none'} | ${s.isActive ? 'active' : 'inactive'}`
+      `  - "${sanitize(s.headline)}" | "${sanitize(s.body)}" | CTA: ${sanitize(s.ctaText) || 'none'} | ${s.isActive ? 'active' : 'inactive'}`
     ).join('\n');
-    return `Page: ${p.pageName} (${p.adCount} ads, ${p.activeCount} active, platforms: ${(p.platforms || []).join(',')})
+    return `Page: ${sanitize(p.pageName)} (${p.adCount} ads, ${p.activeCount} active, platforms: ${(p.platforms || []).join(',')})
 ${samples}`;
   }).join('\n\n');
 
   const contextBlock = context
-    ? `\nUser context (factor this into your analysis): ${context}\n`
+    ? `\nUser context (factor this into your analysis): ${sanitize(context)}\n`
     : '';
 
   const prompt = `You are a senior paid media creative strategist. Analyse the following competitive ad landscape for the keyword/category "${keyword}".
