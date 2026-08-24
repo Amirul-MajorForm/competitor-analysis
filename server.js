@@ -226,6 +226,97 @@ app.post('/api/search-pages', async (req, res) => {
   }
 });
 
+// POST /api/category-search
+// Keyword search across all Pages — returns per-page summaries
+app.post('/api/category-search', async (req, res) => {
+  const token = getToken(req);
+  const { keyword, country } = req.body;
+
+  if (!token) return res.status(400).json({ error: 'Apify token not configured' });
+  if (!keyword) return res.status(400).json({ error: 'keyword is required' });
+
+  try {
+    const countryParam = country && country !== 'ALL'
+      ? `&country=${country}&is_targeted_country=false`
+      : '';
+    const adLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all${countryParam}&media_type=all&q=${encodeURIComponent(keyword)}&search_type=keyword_unordered`;
+
+    const { runId, datasetId } = await startApifyRun(token, {
+      startUrls: [{ url: adLibraryUrl }],
+      count: 20,
+      maxResults: 20,
+      resultsLimit: 20,
+      scrapeAdDetails: true,
+      'scrapePageAds.activeStatus': 'all',
+    });
+
+    await pollRun(token, runId);
+    const ads = (await fetchDataset(token, datasetId, 20)).slice(0, 20);
+
+    if (!ads.length) {
+      return res.json({ pages: [], rawCount: 0 });
+    }
+
+    // Group by page with richer per-page stats
+    const pages = new Map();
+    for (const ad of ads) {
+      const snap = getSnap(ad);
+      const pageId = snap.pageId || ad.pageId || ad.pageID;
+      if (!pageId) continue;
+
+      if (!pages.has(pageId)) {
+        pages.set(pageId, {
+          pageId,
+          pageName: snap.pageName || 'Unknown',
+          pageProfilePictureUrl: snap.pageProfilePictureUrl || '',
+          pageCategories: snap.pageCategories || [],
+          pageLikeCount: snap.pageLikeCount || 0,
+          adCount: 0,
+          activeCount: 0,
+          formats: {},
+          platforms: new Set(),
+          sampleAds: [],
+        });
+      }
+
+      const page = pages.get(pageId);
+      page.adCount += 1;
+      if (ad.isActive) page.activeCount += 1;
+
+      const fmt = (snap.displayFormat || 'IMAGE').toUpperCase();
+      page.formats[fmt] = (page.formats[fmt] || 0) + 1;
+
+      (ad.publisherPlatform || []).forEach(p => page.platforms.add(p));
+
+      if (page.sampleAds.length < 3) {
+        page.sampleAds.push({
+          headline: snap.title || '',
+          body: getBody(ad).slice(0, 150),
+          ctaText: snap.ctaText || '',
+          isActive: ad.isActive,
+          imageUrl: (() => {
+            if (snap.images && snap.images.length) return snap.images[0].resizedImageUrl || snap.images[0].originalImageUrl || '';
+            if (snap.cards && snap.cards.length) return snap.cards[0].resizedImageUrl || snap.cards[0].originalImageUrl || '';
+            if (snap.videos && snap.videos.length) return snap.videos[0].videoPreviewImageUrl || '';
+            return '';
+          })(),
+        });
+      }
+    }
+
+    const result = Array.from(pages.values())
+      .map(p => ({
+        ...p,
+        platforms: [...p.platforms],
+      }))
+      .sort((a, b) => b.adCount - a.adCount);
+
+    res.json({ pages: result, rawCount: ads.length, keyword });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/run-research
 // Runs targeted Apify pull for a specific page and returns deduplicated ads
 app.post('/api/run-research', async (req, res) => {

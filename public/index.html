@@ -711,6 +711,119 @@
 
   .show-more button:hover { border-color: #555; }
 
+  /* ── SEARCH MODE TOGGLE ── */
+  .search-mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    background: var(--input);
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    overflow: hidden;
+  }
+
+  .search-mode-btn {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .search-mode-btn.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .search-mode-btn:hover:not(.active) { color: var(--text-sub); }
+
+  /* ── CATEGORY RESULTS ── */
+  .cat-card {
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+
+  .cat-card:hover { border-color: rgba(200,240,96,0.4); }
+
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .cat-header img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--input);
+    flex-shrink: 0;
+  }
+
+  .cat-header .cat-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .cat-header .cat-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .cat-stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .cat-stat {
+    font-size: 11px;
+    color: var(--text-sub);
+    font-weight: 500;
+  }
+
+  .cat-stat strong {
+    color: var(--accent);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+  }
+
+  .cat-samples {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .cat-sample-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--input);
+    border: 0.5px solid var(--border);
+  }
+
+  .cat-actions { display: flex; gap: 8px; }
+
+  .cat-drill-btn {
+    padding: 7px 16px;
+    background: var(--accent);
+    color: #0e0e0e;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .cat-drill-btn:hover { opacity: 0.88; }
+
   .dedup-note {
     font-size: 11px;
     color: var(--muted);
@@ -785,6 +898,11 @@
 <div class="config-card">
   <h2>Search Configuration</h2>
 
+  <div class="search-mode-toggle">
+    <button class="search-mode-btn active" onclick="setSearchMode('brand', this)">Brand / Page Search</button>
+    <button class="search-mode-btn" onclick="setSearchMode('category', this)">Category / Keyword Search</button>
+  </div>
+
   <div class="field">
     <label>Country <span style="color:var(--muted);font-weight:400;">(applies to all searches)</span></label>
     <select id="country">
@@ -821,30 +939,52 @@
     <div class="hint">Filters ads by the country they target — set this before searching or pasting a Page ID</div>
   </div>
 
-  <div class="field">
-    <label>Competitor / Brand Name</label>
-    <input type="text" id="searchTerm" placeholder="e.g. OATSIDE, Nike Singapore" />
-    <div class="hint">We'll search for matching Pages first</div>
+  <!-- ── BRAND SEARCH MODE ── -->
+  <div id="brandSearchMode">
+    <div class="field">
+      <label>Competitor / Brand Name</label>
+      <input type="text" id="searchTerm" placeholder="e.g. OATSIDE, Nike Singapore" />
+      <div class="hint">We'll search for matching Pages first</div>
+    </div>
+
+    <button class="btn-primary" id="searchPagesBtn" onclick="searchPages()">Find matching Pages</button>
+    <div class="hint" style="margin-top:8px;">Results are capped at 20 ads per run to protect your Apify credits.</div>
+
+    <div class="or-divider">or</div>
+
+    <div class="field">
+      <label>Paste Facebook Page URL or Page ID directly</label>
+      <input type="text" id="directPageInput" placeholder="https://www.facebook.com/PureFitnessSG  or  104940844446187" />
+      <div class="hint">Accepts: facebook.com/PageName URL, numeric Page ID, or Ad Library URL containing view_all_page_id=</div>
+    </div>
+    <button class="btn-secondary" id="useDirectPageBtn" onclick="useDirectPage()">Use this Page directly</button>
   </div>
 
-  <button class="btn-primary" id="searchPagesBtn" onclick="searchPages()">Find matching Pages</button>
+  <!-- ── CATEGORY SEARCH MODE ── -->
+  <div id="categorySearchMode" style="display:none;">
+    <div class="field">
+      <label>Keyword / Category</label>
+      <input type="text" id="categoryKeyword" placeholder="e.g. Ultherapy, teeth whitening, prenatal yoga" />
+      <div class="hint">Searches ad copy across all Pages — returns every competitor running ads mentioning this keyword</div>
+    </div>
+
+    <button class="btn-primary" id="categorySearchBtn" onclick="categorySearch()">Search across all Pages</button>
+    <div class="hint" style="margin-top:8px;">Returns up to 20 ads grouped by Page. Select any Page to drill into their full ad library.</div>
+  </div>
+
   <button class="btn-abort" id="abortBtn" onclick="abortRun()">Abort current run</button>
-  <div class="hint" style="margin-top:8px;">Results are capped at 20 ads per run to protect your Apify credits.</div>
-
-  <div class="or-divider">or</div>
-
-  <div class="field">
-    <label>Paste Facebook Page URL or Page ID directly</label>
-    <input type="text" id="directPageInput" placeholder="https://www.facebook.com/PureFitnessSG  or  104940844446187" />
-    <div class="hint">Accepts: facebook.com/PageName URL, numeric Page ID, or Ad Library URL containing view_all_page_id=</div>
-  </div>
-  <button class="btn-secondary" id="useDirectPageBtn" onclick="useDirectPage()">Use this Page directly</button>
 
   <div class="log-box" id="logBox"></div>
 
   <div id="pageResults" style="display:none;margin-top:16px;">
     <div class="select-label">Select a Page to analyse</div>
     <div id="pageList"></div>
+  </div>
+
+  <!-- ── CATEGORY RESULTS ── -->
+  <div id="categoryResults" style="display:none;margin-top:16px;">
+    <div class="select-label" id="catResultsLabel"></div>
+    <div id="catList"></div>
   </div>
 </div>
 
@@ -1647,6 +1787,96 @@ async function downloadMedia(url, filename) {
   } catch {
     window.open(url, '_blank');
   }
+}
+
+// ── Search Mode Toggle ──────────────────────────────────────────────────────
+function setSearchMode(mode, btn) {
+  document.getElementById('brandSearchMode').style.display = mode === 'brand' ? 'block' : 'none';
+  document.getElementById('categorySearchMode').style.display = mode === 'category' ? 'block' : 'none';
+  document.getElementById('pageResults').style.display = 'none';
+  document.getElementById('categoryResults').style.display = 'none';
+  document.querySelectorAll('.search-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Category Search ─────────────────────────────────────────────────────────
+async function categorySearch() {
+  const keyword = document.getElementById('categoryKeyword').value.trim();
+  const country = document.getElementById('country').value;
+  if (!keyword) { log('Please enter a keyword or category', 'err'); return; }
+
+  const btn = document.getElementById('categorySearchBtn');
+  btn.disabled = true;
+  document.getElementById('categoryResults').style.display = 'none';
+  document.getElementById('selectedPageBar').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  clearLog();
+
+  try {
+    log(`Searching ads mentioning "${keyword}" across all Pages...`);
+    log('This takes up to 3 minutes — polling Apify for completion...');
+    const data = await apiPost('/api/category-search', { keyword, country });
+
+    if (!data.pages || !data.pages.length) {
+      log(`No ads found for "${keyword}" in ${country === 'ALL' ? 'any country' : country}. Try a different keyword.`, 'err');
+      return;
+    }
+
+    log(`Found ${data.rawCount} ads across ${data.pages.length} Page${data.pages.length !== 1 ? 's' : ''}.`, 'ok');
+    renderCategoryResults(data.pages, keyword);
+  } catch (e) {
+    if (e.name === 'AbortError') log('Search aborted.', 'err');
+    else log(`Error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderCategoryResults(pages, keyword) {
+  const container = document.getElementById('catList');
+  const label = document.getElementById('catResultsLabel');
+  label.textContent = `${pages.length} Page${pages.length !== 1 ? 's' : ''} running ads for "${keyword}"`;
+
+  container.innerHTML = pages.map(p => {
+    const fmtList = Object.entries(p.formats || {}).map(([k, v]) => `${v} ${k.toLowerCase()}`).join(', ');
+    const platHtml = (p.platforms || []).map(pl => {
+      const map = { FACEBOOK: 'FB', INSTAGRAM: 'IG', MESSENGER: 'MSG', THREADS: 'THR', AUDIENCE_NETWORK: 'AN', WHATSAPP: 'WA' };
+      return `<span class="platform-badge" style="font-size:10px;padding:2px 6px;background:var(--card);border:0.5px solid var(--border);border-radius:4px;color:var(--text-sub);">${map[pl] || pl.slice(0,3)}</span>`;
+    }).join(' ');
+
+    const samplesHtml = (p.sampleAds || []).map(s => {
+      if (!s.imageUrl) return '';
+      return `<img class="cat-sample-img" src="${esc(s.imageUrl)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" />`;
+    }).filter(Boolean).join('');
+
+    return `<div class="cat-card">
+      <div class="cat-header">
+        <img src="${esc(p.pageProfilePictureUrl)}" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 42 42%22><rect fill=%22%232a2a2a%22 width=%2242%22 height=%2242%22/></svg>'" />
+        <div>
+          <div class="cat-name">${esc(p.pageName)}</div>
+          <div class="cat-meta">${esc((p.pageCategories || []).join(' · '))}${p.pageLikeCount ? ' · ' + p.pageLikeCount.toLocaleString() + ' likes' : ''}</div>
+        </div>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><strong>${p.adCount}</strong> ads found</div>
+        <div class="cat-stat"><strong>${p.activeCount}</strong> active</div>
+        ${fmtList ? `<div class="cat-stat">${fmtList}</div>` : ''}
+      </div>
+      ${samplesHtml ? `<div class="cat-samples">${samplesHtml}</div>` : ''}
+      <div class="cat-actions">
+        ${platHtml}
+        <button class="cat-drill-btn" onclick="drillIntoPage('${esc(p.pageId)}', '${esc(p.pageName)}', '${esc(p.pageProfilePictureUrl)}')">Deep dive →</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('categoryResults').style.display = 'block';
+}
+
+function drillIntoPage(pageId, pageName, pictureUrl) {
+  selectedPage = { pageId, pageName, pageProfilePictureUrl: pictureUrl, pageCategories: [], pageLikeCount: 0 };
+  showSelectedPage();
+  log(`Selected "${pageName}" — click Run Research to pull their full ad library.`, 'ok');
 }
 
 // ── Copy JSON ────────────────────────────────────────────────────────────────
