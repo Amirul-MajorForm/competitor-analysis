@@ -498,10 +498,19 @@ app.post('/api/category-analysis', async (req, res) => {
 
   const sanitize = (str) => (str || '').replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
 
+  // Flatten all sample ads with a global index for Claude to reference
+  const allSamples = [];
+  for (const p of pages) {
+    for (const s of (p.sampleAds || [])) {
+      allSamples.push({ ...s, pageName: p.pageName, pageId: p.pageId });
+    }
+  }
+
   const pagesSummary = pages.map(p => {
-    const samples = (p.sampleAds || []).map(s =>
-      `  - "${sanitize(s.headline)}" | "${sanitize(s.body)}" | CTA: ${sanitize(s.ctaText) || 'none'} | ${s.isActive ? 'active' : 'inactive'}`
-    ).join('\n');
+    const samples = (p.sampleAds || []).map(s => {
+      const idx = allSamples.findIndex(a => a.pageName === p.pageName && a.headline === s.headline && a.body === s.body);
+      return `  - [Ad #${idx}] "${sanitize(s.headline)}" | "${sanitize(s.body)}" | CTA: ${sanitize(s.ctaText) || 'none'} | ${s.isActive ? 'active' : 'inactive'}`;
+    }).join('\n');
     return `Page: ${sanitize(p.pageName)} (${p.adCount} ads, ${p.activeCount} active, platforms: ${(p.platforms || []).join(',')})
 ${samples}`;
   }).join('\n\n');
@@ -519,10 +528,13 @@ Return exactly this structure:
   "sections": [
     {
       "headline": "<5-7 word punchy strategic headline>",
-      "summary": "<2-3 sentences. Sharp, opinionated, specific. No generic observations.>"
+      "summary": "<2-3 sentences. Sharp, opinionated, specific. No generic observations.>",
+      "adRefs": [0, 5, 12]
     }
   ]
 }
+
+Each section MUST include "adRefs" — an array of up to 3 Ad # indices (the [Ad #N] numbers from the data below) that best illustrate or are most relevant to that section's theme. Pick the most representative examples.
 
 Provide 4-5 sections covering:
 1. Dominant themes — what messaging angles dominate this category across all competitors
@@ -545,7 +557,7 @@ ${pagesSummary}`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1200,
+        max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -559,7 +571,7 @@ ${pagesSummary}`;
     const textBlock = (data.content || []).find(b => b.type === 'text');
     const raw = textBlock ? textBlock.text.trim().replace(/^```json|^```|```$/gm, '').trim() : '';
     const parsed = JSON.parse(raw);
-    res.json(parsed);
+    res.json({ ...parsed, sampleAds: allSamples });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

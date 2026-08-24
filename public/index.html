@@ -847,6 +847,86 @@
 
   .cat-analysis-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
 
+  .cat-example-ads {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .cat-example-ad {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--input);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    flex: 1;
+    min-width: 200px;
+    max-width: 320px;
+  }
+
+  .cat-example-ad img {
+    width: 52px;
+    height: 52px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--card);
+    flex-shrink: 0;
+  }
+
+  .cat-example-ad .cat-ex-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cat-example-ad .cat-ex-page {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cat-example-ad .cat-ex-headline {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cat-example-ad .cat-ex-body {
+    font-size: 11px;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cat-download-btn {
+    margin-top: 14px;
+    padding: 8px 18px;
+    background: var(--card2);
+    color: var(--text-sub);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .cat-download-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
   .cat-analysis-section h4 {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 13px;
@@ -1956,20 +2036,69 @@ function renderCategoryResults(pages, keyword) {
   document.getElementById('categoryResults').style.display = 'block';
 }
 
+let lastAnalysisData = null;
+
 function renderCategoryAnalysis(analysis) {
   const el = document.getElementById('catAnalysis');
   if (!analysis || !analysis.sections || !analysis.sections.length) {
     el.style.display = 'none';
     return;
   }
+  lastAnalysisData = analysis;
+  const samples = analysis.sampleAds || [];
+
   el.innerHTML = `<div class="cat-analysis-card">
     <h3>Competitive Theme Analysis</h3>
-    ${analysis.sections.map(s => `<div class="cat-analysis-section">
-      <h4>${esc(s.headline)}</h4>
-      <p>${esc(s.summary)}</p>
-    </div>`).join('')}
+    ${analysis.sections.map((s, si) => {
+      const refs = (s.adRefs || []).slice(0, 3).filter(i => i >= 0 && i < samples.length);
+      const adsHtml = refs.length ? `<div class="cat-example-ads">${refs.map(i => {
+        const a = samples[i];
+        const imgTag = a.imageUrl
+          ? `<img src="${esc(a.imageUrl)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" />`
+          : '';
+        return `<div class="cat-example-ad">
+          ${imgTag}
+          <div class="cat-ex-text">
+            <div class="cat-ex-page">${esc(a.pageName)}</div>
+            <div class="cat-ex-headline">${esc(a.headline) || '<em>No headline</em>'}</div>
+            <div class="cat-ex-body">${esc(a.body) || ''}</div>
+          </div>
+        </div>`;
+      }).join('')}</div>` : '';
+      return `<div class="cat-analysis-section">
+        <h4>${esc(s.headline)}</h4>
+        <p>${esc(s.summary)}</p>
+        ${adsHtml}
+      </div>`;
+    }).join('')}
+    <button class="cat-download-btn" onclick="downloadAnalysisCsv()">Download analysis as CSV</button>
   </div>`;
   el.style.display = 'block';
+}
+
+function downloadAnalysisCsv() {
+  if (!lastAnalysisData) return;
+  const samples = lastAnalysisData.sampleAds || [];
+  const rows = [['Theme', 'Summary', 'Example Page', 'Example Headline', 'Example Body', 'Example CTA', 'Active', 'Image URL']];
+  for (const s of lastAnalysisData.sections) {
+    const refs = (s.adRefs || []).slice(0, 3).filter(i => i >= 0 && i < samples.length);
+    if (!refs.length) {
+      rows.push([s.headline, s.summary, '', '', '', '', '', '']);
+    } else {
+      for (const i of refs) {
+        const a = samples[i];
+        rows.push([s.headline, s.summary, a.pageName, a.headline, a.body, a.ctaText || '', a.isActive ? 'Yes' : 'No', a.imageUrl || '']);
+      }
+    }
+  }
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `category-analysis-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function drillIntoPage(pageId, pageName, pictureUrl) {
