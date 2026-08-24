@@ -243,15 +243,15 @@ app.post('/api/category-search', async (req, res) => {
 
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
-      count: 20,
-      maxResults: 20,
-      resultsLimit: 20,
+      count: 100,
+      maxResults: 100,
+      resultsLimit: 100,
       scrapeAdDetails: true,
       'scrapePageAds.activeStatus': 'all',
     });
 
     await pollRun(token, runId);
-    const ads = (await fetchDataset(token, datasetId, 20)).slice(0, 20);
+    const ads = (await fetchDataset(token, datasetId, 100)).slice(0, 100);
 
     if (!ads.length) {
       return res.json({ pages: [], rawCount: 0 });
