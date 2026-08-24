@@ -824,6 +824,43 @@
 
   .cat-drill-btn:hover { opacity: 0.88; }
 
+  .cat-analysis-card {
+    background: var(--card);
+    border: 0.5px solid var(--accent-dim);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .cat-analysis-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .cat-analysis-section {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 0.5px solid var(--border-soft);
+  }
+
+  .cat-analysis-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+  .cat-analysis-section h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .cat-analysis-section p {
+    font-size: 13px;
+    color: var(--text-sub);
+    line-height: 1.55;
+  }
+
   .dedup-note {
     font-size: 11px;
     color: var(--muted);
@@ -968,8 +1005,37 @@
       <div class="hint">Searches ad copy across all Pages — returns every competitor running ads mentioning this keyword</div>
     </div>
 
+    <div class="field">
+      <label>Language</label>
+      <select id="adLanguage">
+        <option value="en" selected>English</option>
+        <option value="zh">Chinese</option>
+        <option value="ms">Malay</option>
+        <option value="id">Indonesian</option>
+        <option value="th">Thai</option>
+        <option value="vi">Vietnamese</option>
+        <option value="tl">Filipino / Tagalog</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+        <option value="hi">Hindi</option>
+        <option value="ar">Arabic</option>
+        <option value="es">Spanish</option>
+        <option value="pt">Portuguese</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="ALL">All languages</option>
+      </select>
+      <div class="hint">Filter ads by language — default is English only</div>
+    </div>
+
+    <div class="field">
+      <label>Additional context for analysis <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <textarea id="categoryContext" rows="3" placeholder="e.g. We're a clinic in Singapore launching Ultherapy — focus on pricing angles, before/after claims, and how competitors position non-invasive vs surgical alternatives." style="width:100%;background:var(--input);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;resize:vertical;"></textarea>
+      <div class="hint">Give Claude context about your brand, goals, or what to focus on — this shapes the competitive analysis</div>
+    </div>
+
     <button class="btn-primary" id="categorySearchBtn" onclick="categorySearch()">Search across all Pages</button>
-    <div class="hint" style="margin-top:8px;">Returns up to 100 ads grouped by Page. Select any Page to drill into their full ad library.</div>
+    <div class="hint" style="margin-top:8px;">Returns up to 100 ads grouped by Page with AI-powered theme analysis.</div>
   </div>
 
   <button class="btn-abort" id="abortBtn" onclick="abortRun()">Abort current run</button>
@@ -984,6 +1050,7 @@
   <!-- ── CATEGORY RESULTS ── -->
   <div id="categoryResults" style="display:none;margin-top:16px;">
     <div class="select-label" id="catResultsLabel"></div>
+    <div id="catAnalysis" style="display:none;margin-bottom:16px;"></div>
     <div id="catList"></div>
   </div>
 </div>
@@ -1803,11 +1870,14 @@ function setSearchMode(mode, btn) {
 async function categorySearch() {
   const keyword = document.getElementById('categoryKeyword').value.trim();
   const country = document.getElementById('country').value;
+  const language = document.getElementById('adLanguage').value;
+  const context = document.getElementById('categoryContext').value.trim();
   if (!keyword) { log('Please enter a keyword or category', 'err'); return; }
 
   const btn = document.getElementById('categorySearchBtn');
   btn.disabled = true;
   document.getElementById('categoryResults').style.display = 'none';
+  document.getElementById('catAnalysis').style.display = 'none';
   document.getElementById('selectedPageBar').style.display = 'none';
   document.getElementById('results').style.display = 'none';
   clearLog();
@@ -1815,7 +1885,7 @@ async function categorySearch() {
   try {
     log(`Searching ads mentioning "${keyword}" across all Pages...`);
     log('This takes up to 3 minutes — polling Apify for completion...');
-    const data = await apiPost('/api/category-search', { keyword, country });
+    const data = await apiPost('/api/category-search', { keyword, country, language });
 
     if (!data.pages || !data.pages.length) {
       log(`No ads found for "${keyword}" in ${country === 'ALL' ? 'any country' : country}. Try a different keyword.`, 'err');
@@ -1824,6 +1894,19 @@ async function categorySearch() {
 
     log(`Found ${data.rawCount} ads across ${data.pages.length} Page${data.pages.length !== 1 ? 's' : ''}.`, 'ok');
     renderCategoryResults(data.pages, keyword);
+
+    log('Running AI theme analysis across all results...');
+    try {
+      const analysis = await apiPost('/api/category-analysis', {
+        pages: data.pages,
+        keyword,
+        context,
+      });
+      renderCategoryAnalysis(analysis);
+      log('Theme analysis complete.', 'ok');
+    } catch (e2) {
+      log(`Theme analysis failed: ${e2.message}`, 'err');
+    }
   } catch (e) {
     if (e.name === 'AbortError') log('Search aborted.', 'err');
     else log(`Error: ${e.message}`, 'err');
@@ -1871,6 +1954,22 @@ function renderCategoryResults(pages, keyword) {
   }).join('');
 
   document.getElementById('categoryResults').style.display = 'block';
+}
+
+function renderCategoryAnalysis(analysis) {
+  const el = document.getElementById('catAnalysis');
+  if (!analysis || !analysis.sections || !analysis.sections.length) {
+    el.style.display = 'none';
+    return;
+  }
+  el.innerHTML = `<div class="cat-analysis-card">
+    <h3>Competitive Theme Analysis</h3>
+    ${analysis.sections.map(s => `<div class="cat-analysis-section">
+      <h4>${esc(s.headline)}</h4>
+      <p>${esc(s.summary)}</p>
+    </div>`).join('')}
+  </div>`;
+  el.style.display = 'block';
 }
 
 function drillIntoPage(pageId, pageName, pictureUrl) {

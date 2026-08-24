@@ -230,7 +230,7 @@ app.post('/api/search-pages', async (req, res) => {
 // Keyword search across all Pages — returns per-page summaries
 app.post('/api/category-search', async (req, res) => {
   const token = getToken(req);
-  const { keyword, country } = req.body;
+  const { keyword, country, language } = req.body;
 
   if (!token) return res.status(400).json({ error: 'Apify token not configured' });
   if (!keyword) return res.status(400).json({ error: 'keyword is required' });
@@ -239,7 +239,10 @@ app.post('/api/category-search', async (req, res) => {
     const countryParam = country && country !== 'ALL'
       ? `&country=${country}&is_targeted_country=false`
       : '';
-    const adLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all${countryParam}&media_type=all&q=${encodeURIComponent(keyword)}&search_type=keyword_unordered`;
+    const langParam = language && language !== 'ALL'
+      ? `&content_languages[0]=${language}`
+      : '';
+    const adLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all${countryParam}${langParam}&media_type=all&q=${encodeURIComponent(keyword)}&search_type=keyword_unordered`;
 
     const { runId, datasetId } = await startApifyRun(token, {
       startUrls: [{ url: adLibraryUrl }],
@@ -465,6 +468,82 @@ ${adData}`;
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Anthropic error ${response.status}: ${text.slice(0, 150)}`);
+    }
+
+    const data = await response.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    const raw = textBlock ? textBlock.text.trim().replace(/^```json|^```|```$/gm, '').trim() : '';
+    const parsed = JSON.parse(raw);
+    res.json(parsed);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/category-analysis
+// Calls Claude to analyse themes across all ads from a category search
+app.post('/api/category-analysis', async (req, res) => {
+  const apiKey = getAnthropicKey(req);
+  const { pages = [], keyword = '', context = '' } = req.body;
+
+  if (!apiKey) return res.status(400).json({ error: 'Anthropic API key not configured' });
+  if (!pages.length) return res.status(400).json({ error: 'pages array is required' });
+
+  const pagesSummary = pages.map(p => {
+    const samples = (p.sampleAds || []).map(s =>
+      `  - "${s.headline}" | "${s.body}" | CTA: ${s.ctaText || 'none'} | ${s.isActive ? 'active' : 'inactive'}`
+    ).join('\n');
+    return `Page: ${p.pageName} (${p.adCount} ads, ${p.activeCount} active, platforms: ${(p.platforms || []).join(',')})
+${samples}`;
+  }).join('\n\n');
+
+  const contextBlock = context
+    ? `\nUser context (factor this into your analysis): ${context}\n`
+    : '';
+
+  const prompt = `You are a senior paid media creative strategist. Analyse the following competitive ad landscape for the keyword/category "${keyword}".
+${contextBlock}
+Respond ONLY with valid JSON — no markdown, no explanation, no backticks.
+
+Return exactly this structure:
+{
+  "sections": [
+    {
+      "headline": "<5-7 word punchy strategic headline>",
+      "summary": "<2-3 sentences. Sharp, opinionated, specific. No generic observations.>"
+    }
+  ]
+}
+
+Provide 4-5 sections covering:
+1. Dominant themes — what messaging angles dominate this category across all competitors
+2. Creative patterns — what formats, hooks, and visual styles are overused vs underused
+3. Positioning clusters — how competitors segment themselves (price, premium, clinical, lifestyle, etc.)
+4. Gaps and whitespace — specific angles, audiences, or formats nobody is exploiting
+5. Tactical recommendations — 2-3 concrete creative directions a new entrant should test first
+
+${pages.length} Pages found running ads for "${keyword}":
+
+${pagesSummary}`;
+
+  try {
+    const response = await fetch(`${ANTHROPIC_BASE}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
