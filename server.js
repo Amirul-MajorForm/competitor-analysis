@@ -26,8 +26,12 @@ function getAnthropicKey(req) {
 }
 
 async function startApifyRun(token, payload) {
+  return startActorRun(token, 'apify~facebook-ads-scraper', payload);
+}
+
+async function startActorRun(token, actorId, payload) {
   const res = await fetch(
-    `${APIFY_BASE}/acts/apify~facebook-ads-scraper/runs?token=${token}`,
+    `${APIFY_BASE}/acts/${actorId}/runs?token=${token}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -576,6 +580,117 @@ ${pagesSummary}`;
     res.status(500).json({ error: e.message });
   }
 });
+
+// ── Google Ads Endpoints ────────────────────────────────────────────────────
+
+const GOOGLE_ADS_ACTOR = 'silva95gustavo~google-ads-scraper';
+
+// POST /api/google-search
+// Search Google Ads Transparency Center by advertiser name or domain
+app.post('/api/google-search', async (req, res) => {
+  const token = getToken(req);
+  const { searchTerm, country } = req.body;
+
+  if (!token) return res.status(400).json({ error: 'Apify token not configured' });
+  if (!searchTerm) return res.status(400).json({ error: 'searchTerm is required' });
+
+  try {
+    const region = country && country !== 'ALL' ? country : 'ANYWHERE';
+    const { runId, datasetId } = await startActorRun(token, GOOGLE_ADS_ACTOR, {
+      queries: [searchTerm],
+      resultsLimit: 5,
+      region,
+      skipDetails: true,
+    });
+
+    await pollRun(token, runId);
+    const ads = (await fetchDataset(token, datasetId, 50)).slice(0, 50);
+
+    // Group by advertiser to build a "pick an advertiser" list
+    const advertisers = new Map();
+    for (const ad of ads) {
+      const id = ad.advertiserId;
+      if (!id) continue;
+      if (!advertisers.has(id)) {
+        advertisers.set(id, {
+          advertiserId: id,
+          advertiserName: ad.advertiserName || 'Unknown',
+          adCount: 0,
+          formats: {},
+          platforms: new Set(),
+        });
+      }
+      const a = advertisers.get(id);
+      a.adCount += 1;
+      const fmt = (ad.format || 'TEXT').toUpperCase();
+      a.formats[fmt] = (a.formats[fmt] || 0) + 1;
+      (ad.surfaceServingStats || []).forEach(s => a.platforms.add(s.surfaceCode));
+    }
+
+    const result = Array.from(advertisers.values())
+      .map(a => ({ ...a, platforms: [...a.platforms] }))
+      .sort((a, b) => b.adCount - a.adCount);
+
+    res.json({ advertisers: result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/google-run-research
+// Pull ads for a specific Google advertiser
+app.post('/api/google-run-research', async (req, res) => {
+  const token = getToken(req);
+  const { advertiserId, advertiserName, country } = req.body;
+
+  if (!token) return res.status(400).json({ error: 'Apify token not configured' });
+  if (!advertiserId) return res.status(400).json({ error: 'advertiserId is required' });
+
+  try {
+    const region = country && country !== 'ALL' ? country : 'ANYWHERE';
+    const { runId, datasetId } = await startActorRun(token, GOOGLE_ADS_ACTOR, {
+      advertiserIds: [advertiserId],
+      resultsLimit: 50,
+      region,
+      skipDetails: false,
+    });
+
+    await pollRun(token, runId);
+    const ads = (await fetchDataset(token, datasetId, 50)).slice(0, 50);
+
+    // Normalize to a consistent shape for the frontend
+    const normalized = ads.map(ad => ({
+      _platform: 'google',
+      advertiserId: ad.advertiserId,
+      advertiserName: ad.advertiserName || advertiserName,
+      creativeId: ad.creativeId,
+      format: (ad.format || 'TEXT').toUpperCase(),
+      headline: ad.headline || '',
+      description: ad.description || '',
+      callToAction: ad.callToAction || '',
+      previewUrl: ad.previewUrl || '',
+      adLibraryUrl: ad.adLibraryUrl || '',
+      firstShown: ad.firstShown || '',
+      lastShown: ad.lastShown || '',
+      numServedDays: ad.numServedDays || 0,
+      impressions: ad.impressions || null,
+      regionStats: ad.regionStats || [],
+      surfaceServingStats: ad.surfaceServingStats || [],
+      isActive: ad.lastShown ? isRecentlyActive(ad.lastShown) : false,
+    }));
+
+    res.json({ ads: normalized, rawCount: ads.length, advertiserName });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+function isRecentlyActive(lastShown) {
+  if (!lastShown) return false;
+  const last = new Date(lastShown);
+  const daysAgo = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
+  return daysAgo <= 30;
+}
 
 // POST /api/download-creatives
 // Fetches ad creative images server-side and returns a ZIP

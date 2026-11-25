@@ -951,6 +951,88 @@
     border: 0.5px solid var(--border);
     display: none;
   }
+
+  /* ── PLATFORM TOGGLE ── */
+  .platform-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    background: var(--card2);
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    overflow: hidden;
+  }
+
+  .platform-toggle-btn {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .platform-toggle-btn.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .platform-toggle-btn:hover:not(.active) { color: var(--text-sub); }
+
+  /* ── GOOGLE AD CARDS ── */
+  .google-ad-card {
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    transition: border-color 0.15s;
+  }
+
+  .google-ad-card:hover { border-color: rgba(200,240,96,0.3); }
+
+  .google-ad-headline {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+
+  .google-ad-desc {
+    font-size: 13px;
+    color: var(--text-sub);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .google-ad-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .google-ad-meta strong {
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+
+  .google-ad-preview {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: var(--input);
+  }
 </style>
 </head>
 <body>
@@ -1015,9 +1097,35 @@
 <div class="config-card">
   <h2>Search Configuration</h2>
 
-  <div class="search-mode-toggle">
-    <button class="search-mode-btn active" onclick="setSearchMode('brand', this)">Brand / Page Search</button>
-    <button class="search-mode-btn" onclick="setSearchMode('category', this)">Category / Keyword Search</button>
+  <!-- Platform Toggle -->
+  <div class="platform-toggle">
+    <button class="platform-toggle-btn active" onclick="setPlatform('meta', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      Meta Ads
+    </button>
+    <button class="platform-toggle-btn" onclick="setPlatform('google', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Google Ads
+    </button>
+  </div>
+
+  <!-- Meta search modes -->
+  <div id="metaPlatformSection">
+    <div class="search-mode-toggle">
+      <button class="search-mode-btn active" onclick="setSearchMode('brand', this)">Brand / Page Search</button>
+      <button class="search-mode-btn" onclick="setSearchMode('category', this)">Category / Keyword Search</button>
+    </div>
+  </div>
+
+  <!-- Google search section -->
+  <div id="googlePlatformSection" style="display:none;">
+    <div class="field">
+      <label>Advertiser / Brand Name</label>
+      <input type="text" id="googleSearchTerm" placeholder="e.g. Nike, Grab, Shopee" />
+      <div class="hint">Searches Google Ads Transparency Center for advertisers matching this name</div>
+    </div>
+    <button class="btn-primary" id="googleSearchBtn" onclick="googleSearch()">Find Google Advertisers</button>
+    <div class="hint" style="margin-top:8px;">Results capped at 50 ads per pull (~$0.08 Apify cost).</div>
   </div>
 
   <div class="field">
@@ -1132,6 +1240,18 @@
     <div class="select-label" id="catResultsLabel"></div>
     <div id="catAnalysis" style="display:none;margin-bottom:16px;"></div>
     <div id="catList"></div>
+  </div>
+
+  <!-- ── GOOGLE ADVERTISER RESULTS ── -->
+  <div id="googleAdvertiserResults" style="display:none;margin-top:16px;">
+    <div class="select-label" id="googleResultsLabel"></div>
+    <div id="googleAdvertiserList"></div>
+  </div>
+
+  <!-- ── GOOGLE AD RESULTS ── -->
+  <div id="googleAdResults" style="display:none;margin-top:16px;">
+    <div class="select-label" id="googleAdsLabel"></div>
+    <div id="googleAdsList" style="display:grid;gap:12px;"></div>
   </div>
 </div>
 
@@ -2122,6 +2242,175 @@ function drillIntoPage(pageId, pageName, pictureUrl) {
   selectedPage = { pageId, pageName, pageProfilePictureUrl: pictureUrl, pageCategories: [], pageLikeCount: 0 };
   showSelectedPage();
   log(`Selected "${pageName}" — click Run Research to pull their full ad library.`, 'ok');
+}
+
+// ── Platform Toggle ─────────────────────────────────────────────────────────
+let currentPlatform = 'meta';
+
+function setPlatform(platform, btn) {
+  currentPlatform = platform;
+  document.querySelectorAll('.platform-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const metaSection = document.getElementById('metaPlatformSection');
+  const googleSection = document.getElementById('googlePlatformSection');
+  const brandMode = document.getElementById('brandSearchMode');
+  const catMode = document.getElementById('categorySearchMode');
+  const pageResults = document.getElementById('pageResults');
+  const catResults = document.getElementById('categoryResults');
+  const selectedBar = document.getElementById('selectedPageBar');
+  const resultsCard = document.getElementById('results');
+  const googleAdvResults = document.getElementById('googleAdvertiserResults');
+  const googleAdResults = document.getElementById('googleAdResults');
+
+  if (platform === 'meta') {
+    metaSection.style.display = 'block';
+    googleSection.style.display = 'none';
+    googleAdvResults.style.display = 'none';
+    googleAdResults.style.display = 'none';
+  } else {
+    metaSection.style.display = 'none';
+    googleSection.style.display = 'block';
+    brandMode.style.display = 'none';
+    catMode.style.display = 'none';
+    pageResults.style.display = 'none';
+    catResults.style.display = 'none';
+    selectedBar.style.display = 'none';
+    resultsCard.style.display = 'none';
+  }
+  clearLog();
+}
+
+// ── Google Ads Search ───────────────────────────────────────────────────────
+async function googleSearch() {
+  const searchTerm = document.getElementById('googleSearchTerm').value.trim();
+  const country = document.getElementById('country').value;
+  if (!searchTerm) { log('Please enter an advertiser name', 'err'); return; }
+
+  const btn = document.getElementById('googleSearchBtn');
+  btn.disabled = true;
+  document.getElementById('googleAdvertiserResults').style.display = 'none';
+  document.getElementById('googleAdResults').style.display = 'none';
+  clearLog();
+
+  try {
+    log(`Searching Google Ads Transparency Center for "${searchTerm}"...`);
+    log('This takes 1–2 minutes — polling Apify...');
+    const data = await apiPost('/api/google-search', { searchTerm, country });
+
+    if (!data.advertisers || !data.advertisers.length) {
+      log(`No Google advertisers found for "${searchTerm}". Try a different name.`, 'err');
+      return;
+    }
+
+    log(`Found ${data.advertisers.length} advertiser${data.advertisers.length !== 1 ? 's' : ''}.`, 'ok');
+    renderGoogleAdvertisers(data.advertisers, searchTerm);
+  } catch (e) {
+    if (e.name === 'AbortError') log('Search aborted.', 'err');
+    else log(`Error: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderGoogleAdvertisers(advertisers, query) {
+  const container = document.getElementById('googleAdvertiserList');
+  const label = document.getElementById('googleResultsLabel');
+  label.textContent = `${advertisers.length} advertiser${advertisers.length !== 1 ? 's' : ''} found for "${query}"`;
+
+  container.innerHTML = advertisers.map(a => {
+    const fmtList = Object.entries(a.formats || {}).map(([k, v]) => `${v} ${k.toLowerCase()}`).join(', ');
+    const platHtml = (a.platforms || []).map(p => {
+      const map = { SEARCH: 'Search', YOUTUBE: 'YouTube', SHOPPING: 'Shopping', MAPS: 'Maps', PLAY: 'Play', DISPLAY: 'Display' };
+      return `<span style="font-size:10px;padding:2px 6px;background:var(--card);border:0.5px solid var(--border);border-radius:4px;color:var(--text-sub);">${map[p] || p}</span>`;
+    }).join(' ');
+
+    return `<div class="cat-card">
+      <div class="cat-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--accent)" opacity="0.6"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/></svg>
+          <div>
+            <div style="font-weight:600;font-size:14px;">${esc(a.advertiserName)}</div>
+            <div style="font-size:11px;color:var(--muted);">ID: ${esc(a.advertiserId)}</div>
+          </div>
+        </div>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><span>${a.adCount}</span> ads found</div>
+        ${fmtList ? `<div class="cat-stat">${esc(fmtList)}</div>` : ''}
+        ${platHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;">${platHtml}</div>` : ''}
+      </div>
+      <button class="cat-drill-btn" onclick="googleRunResearch('${esc(a.advertiserId)}', '${esc(a.advertiserName)}')">Pull full ad library →</button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('googleAdvertiserResults').style.display = 'block';
+}
+
+async function googleRunResearch(advertiserId, advertiserName) {
+  const country = document.getElementById('country').value;
+  document.getElementById('googleAdResults').style.display = 'none';
+  clearLog();
+
+  log(`Pulling Google ads for "${advertiserName}"...`);
+  log('Fetching up to 50 ads — this takes 1–3 minutes...');
+
+  try {
+    const data = await apiPost('/api/google-run-research', { advertiserId, advertiserName, country });
+
+    if (!data.ads || !data.ads.length) {
+      log('No ads returned for this advertiser.', 'err');
+      return;
+    }
+
+    log(`Got ${data.ads.length} Google ads for ${esc(data.advertiserName)}.`, 'ok');
+    renderGoogleAds(data.ads, data.advertiserName);
+  } catch (e) {
+    if (e.name === 'AbortError') log('Aborted.', 'err');
+    else log(`Error: ${e.message}`, 'err');
+  }
+}
+
+function renderGoogleAds(ads, advertiserName) {
+  const container = document.getElementById('googleAdsList');
+  const label = document.getElementById('googleAdsLabel');
+  label.textContent = `${ads.length} Google ads for "${advertiserName}"`;
+
+  container.innerHTML = ads.map((ad, i) => {
+    const hasPreview = ad.previewUrl && ad.format !== 'TEXT';
+    const surfaces = (ad.surfaceServingStats || []).map(s => {
+      const map = { SEARCH: 'Search', YOUTUBE: 'YouTube', SHOPPING: 'Shopping', MAPS: 'Maps', PLAY: 'Play', DISPLAY: 'Display' };
+      return map[s.surfaceCode] || s.surfaceCode;
+    }).join(', ');
+
+    const regions = (ad.regionStats || []).slice(0, 5).map(r => r.regionCode).join(', ');
+    const imprLabel = ad.impressions
+      ? `${(ad.impressions.lowerBound || '?').toLocaleString()} – ${(ad.impressions.upperBound || '?').toLocaleString()}`
+      : '';
+
+    const dateRange = ad.firstShown
+      ? `${new Date(ad.firstShown).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}${ad.lastShown ? ' → ' + new Date(ad.lastShown).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}`
+      : '';
+
+    return `<div class="google-ad-card">
+      ${hasPreview ? `<img class="google-ad-preview" src="${esc(ad.previewUrl)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" />` : ''}
+      ${ad.headline ? `<div class="google-ad-headline">${esc(ad.headline)}</div>` : ''}
+      ${ad.description ? `<div class="google-ad-desc">${esc(ad.description)}</div>` : ''}
+      ${ad.callToAction ? `<div style="margin-bottom:8px;"><span style="font-size:11px;padding:3px 8px;background:var(--accent-dim);color:var(--accent);border-radius:4px;font-weight:600;">${esc(ad.callToAction)}</span></div>` : ''}
+      <div class="google-ad-meta">
+        <span><strong>Format:</strong> ${esc(ad.format)}</span>
+        ${ad.numServedDays ? `<span><strong>Served:</strong> ${ad.numServedDays} days</span>` : ''}
+        ${imprLabel ? `<span><strong>Impressions:</strong> ${imprLabel}</span>` : ''}
+        ${surfaces ? `<span><strong>Surfaces:</strong> ${surfaces}</span>` : ''}
+        ${regions ? `<span><strong>Regions:</strong> ${regions}</span>` : ''}
+        ${dateRange ? `<span><strong>Dates:</strong> ${dateRange}</span>` : ''}
+        ${ad.isActive ? '<span style="color:var(--green);font-weight:600;">● Active</span>' : '<span style="color:var(--muted);">○ Inactive</span>'}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('googleAdResults').style.display = 'block';
+  document.getElementById('googleAdResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ── Copy JSON ────────────────────────────────────────────────────────────────
