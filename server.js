@@ -763,6 +763,27 @@ ${adsSummary}`;
 
 // POST /api/download-creatives
 // Fetches ad creative images server-side and returns a ZIP
+// GET /api/proxy-image?url=...
+// Proxies an external image to bypass CORS for client-side download
+app.get('/api/proxy-image', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url is required' });
+
+  try {
+    const imgRes = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://adstransparency.google.com/' },
+    });
+    if (!imgRes.ok) throw new Error(`Upstream ${imgRes.status}`);
+    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', 'attachment; filename="google-ad.jpg"');
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
+    res.send(buffer);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/download-creatives', async (req, res) => {
   const { sections = [], sampleAds = [] } = req.body;
   if (!sections.length) return res.status(400).json({ error: 'No sections provided' });
