@@ -589,19 +589,17 @@ const GOOGLE_ADS_ACTOR = 'silva95gustavo~google-ads-scraper';
 // Search Google Ads Transparency Center by advertiser name or domain
 app.post('/api/google-search', async (req, res) => {
   const token = getToken(req);
-  const { searchTerm, country } = req.body;
+  const { searchTerm, domain, country } = req.body;
 
   if (!token) return res.status(400).json({ error: 'Apify token not configured' });
-  if (!searchTerm) return res.status(400).json({ error: 'searchTerm is required' });
+  if (!searchTerm && !domain) return res.status(400).json({ error: 'searchTerm or domain is required' });
 
   try {
     const region = country && country !== 'ALL' ? country : 'ANYWHERE';
-    const { runId, datasetId } = await startActorRun(token, GOOGLE_ADS_ACTOR, {
-      queries: [searchTerm],
-      resultsLimit: 5,
-      region,
-      skipDetails: true,
-    });
+    const input = { resultsLimit: 5, region, skipDetails: true };
+    if (searchTerm) input.queries = [searchTerm];
+    if (domain) input.domains = [domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '')];
+    const { runId, datasetId } = await startActorRun(token, GOOGLE_ADS_ACTOR, input);
 
     await pollRun(token, runId);
     const ads = (await fetchDataset(token, datasetId, 50)).slice(0, 50);

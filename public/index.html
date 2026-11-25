@@ -1124,6 +1124,11 @@
       <input type="text" id="googleSearchTerm" placeholder="e.g. Nike, Grab, Shopee" />
       <div class="hint">Searches Google Ads Transparency Center for advertisers matching this name</div>
     </div>
+    <div class="field">
+      <label>Website domain <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input type="text" id="googleDomain" placeholder="e.g. nike.com, grab.com" />
+      <div class="hint">Filter by advertiser's website domain — use with or instead of the name above</div>
+    </div>
     <button class="btn-primary" id="googleSearchBtn" onclick="googleSearch()">Find Google Advertisers</button>
     <div class="hint" style="margin-top:8px;">Results capped at 50 ads per pull (~$0.08 Apify cost).</div>
   </div>
@@ -2284,8 +2289,9 @@ function setPlatform(platform, btn) {
 // ── Google Ads Search ───────────────────────────────────────────────────────
 async function googleSearch() {
   const searchTerm = document.getElementById('googleSearchTerm').value.trim();
+  const domain = document.getElementById('googleDomain').value.trim();
   const country = document.getElementById('country').value;
-  if (!searchTerm) { log('Please enter an advertiser name', 'err'); return; }
+  if (!searchTerm && !domain) { log('Please enter an advertiser name or website domain', 'err'); return; }
 
   const btn = document.getElementById('googleSearchBtn');
   btn.disabled = true;
@@ -2296,7 +2302,7 @@ async function googleSearch() {
   try {
     log(`Searching Google Ads Transparency Center for "${searchTerm}"...`);
     log('This takes 1–2 minutes — polling Apify...');
-    const data = await apiPost('/api/google-search', { searchTerm, country });
+    const data = await apiPost('/api/google-search', { searchTerm: searchTerm || undefined, domain: domain || undefined, country });
 
     if (!data.advertisers || !data.advertisers.length) {
       log(`No Google advertisers found for "${searchTerm}". Try a different name.`, 'err');
