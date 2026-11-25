@@ -992,46 +992,131 @@
     background: var(--card2);
     border: 0.5px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 16px;
+    overflow: hidden;
     transition: border-color 0.15s;
   }
 
   .google-ad-card:hover { border-color: rgba(200,240,96,0.3); }
 
-  .google-ad-headline {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--blue);
-    margin-bottom: 4px;
-  }
-
-  .google-ad-desc {
-    font-size: 13px;
-    color: var(--text-sub);
-    line-height: 1.5;
-    margin-bottom: 8px;
-  }
-
-  .google-ad-meta {
+  .google-ad-preview-wrap {
+    background: #fff;
+    padding: 16px;
     display: flex;
+    justify-content: center;
+  }
+
+  .google-ad-preview-wrap img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+  }
+
+  .google-ad-info {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-    font-size: 11px;
-    color: var(--muted);
   }
 
-  .google-ad-meta strong {
+  .google-ad-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .google-ad-pill {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .google-ad-pill.format { background: var(--blue-bg); color: var(--blue); }
+  .google-ad-pill.surface { background: var(--purple-bg); color: var(--purple); }
+  .google-ad-pill.days { background: var(--orange-bg); color: var(--orange); }
+  .google-ad-pill.active { background: var(--green-bg); color: var(--green); }
+  .google-ad-pill.inactive { background: var(--card); color: var(--muted); border: 0.5px solid var(--border); }
+  .google-ad-pill.region { background: var(--card); color: var(--text-sub); border: 0.5px solid var(--border); }
+
+  .google-ad-dates {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .google-ad-text-card {
+    padding: 16px;
+  }
+
+  .google-ad-text-card .gat-headline {
+    font-size: 15px;
+    font-weight: 600;
+    color: #8ab4f8;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .google-ad-text-card .gat-desc {
+    font-size: 13px;
     color: var(--text-sub);
+    line-height: 1.6;
+    margin-bottom: 2px;
+  }
+
+  .google-ad-text-card .gat-cta {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    padding: 3px 10px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 4px;
     font-weight: 600;
   }
 
-  .google-ad-preview {
-    width: 100%;
-    max-height: 300px;
-    object-fit: contain;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: var(--input);
+  /* ── GOOGLE ANALYSIS CARD ── */
+  .google-analysis-card {
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .google-analysis-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .google-analysis-section {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .google-analysis-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .google-analysis-section h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .google-analysis-section p {
+    font-size: 13px;
+    color: var(--text-sub);
+    line-height: 1.65;
   }
 </style>
 </head>
@@ -1256,7 +1341,8 @@
   <!-- ── GOOGLE AD RESULTS ── -->
   <div id="googleAdResults" style="display:none;margin-top:16px;">
     <div class="select-label" id="googleAdsLabel"></div>
-    <div id="googleAdsList" style="display:grid;gap:12px;"></div>
+    <div id="googleAnalysis" style="display:none;margin-bottom:16px;"></div>
+    <div id="googleAdsList" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));"></div>
   </div>
 </div>
 
@@ -2356,6 +2442,7 @@ function renderGoogleAdvertisers(advertisers, query) {
 async function googleRunResearch(advertiserId, advertiserName) {
   const country = document.getElementById('country').value;
   document.getElementById('googleAdResults').style.display = 'none';
+  document.getElementById('googleAnalysis').style.display = 'none';
   clearLog();
 
   log(`Pulling Google ads for "${advertiserName}"...`);
@@ -2371,6 +2458,15 @@ async function googleRunResearch(advertiserId, advertiserName) {
 
     log(`Got ${data.ads.length} Google ads for ${esc(data.advertiserName)}.`, 'ok');
     renderGoogleAds(data.ads, data.advertiserName);
+
+    log('Running AI analysis across all Google ads...');
+    try {
+      const analysis = await apiPost('/api/google-analysis', { ads: data.ads, advertiserName: data.advertiserName });
+      renderGoogleAnalysis(analysis, data.advertiserName);
+      log('Google Ads analysis complete.', 'ok');
+    } catch (e2) {
+      log(`Analysis failed: ${e2.message}`, 'err');
+    }
   } catch (e) {
     if (e.name === 'AbortError') log('Aborted.', 'err');
     else log(`Error: ${e.message}`, 'err');
@@ -2383,40 +2479,80 @@ function renderGoogleAds(ads, advertiserName) {
   label.textContent = `${ads.length} Google ads for "${advertiserName}"`;
 
   container.innerHTML = ads.map((ad, i) => {
-    const hasPreview = ad.previewUrl && ad.format !== 'TEXT';
     const surfaces = (ad.surfaceServingStats || []).map(s => {
-      const map = { SEARCH: 'Search', YOUTUBE: 'YouTube', SHOPPING: 'Shopping', MAPS: 'Maps', PLAY: 'Play', DISPLAY: 'Display' };
-      return map[s.surfaceCode] || s.surfaceCode;
-    }).join(', ');
+      const map = { SEARCH: 'Search', YOUTUBE: 'YT', SHOPPING: 'Shop', MAPS: 'Maps', PLAY: 'Play', DISPLAY: 'Display' };
+      return `<span class="google-ad-pill surface">${map[s.surfaceCode] || s.surfaceCode}</span>`;
+    }).join('');
 
-    const regions = (ad.regionStats || []).slice(0, 5).map(r => r.regionCode).join(', ');
-    const imprLabel = ad.impressions
-      ? `${(ad.impressions.lowerBound || '?').toLocaleString()} – ${(ad.impressions.upperBound || '?').toLocaleString()}`
-      : '';
+    const regions = (ad.regionStats || []).slice(0, 3).map(r =>
+      `<span class="google-ad-pill region">${r.regionCode}</span>`
+    ).join('');
 
     const dateRange = ad.firstShown
-      ? `${new Date(ad.firstShown).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}${ad.lastShown ? ' → ' + new Date(ad.lastShown).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}`
+      ? `${new Date(ad.firstShown).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${ad.lastShown ? new Date(ad.lastShown).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }) : 'now'}`
       : '';
 
+    const hasPreview = ad.previewUrl;
+
+    // For ads with preview images — show the screenshot like Google Transparency Center
+    if (hasPreview) {
+      return `<div class="google-ad-card">
+        <div class="google-ad-preview-wrap">
+          <img src="${esc(ad.previewUrl)}" referrerpolicy="no-referrer" onerror="this.parentElement.style.display='none'" />
+        </div>
+        <div class="google-ad-info">
+          <div class="google-ad-pills">
+            <span class="google-ad-pill format">${esc(ad.format)}</span>
+            ${surfaces}
+            ${ad.numServedDays ? `<span class="google-ad-pill days">${ad.numServedDays}d</span>` : ''}
+            ${ad.isActive ? '<span class="google-ad-pill active">Active</span>' : '<span class="google-ad-pill inactive">Ended</span>'}
+            ${regions}
+          </div>
+          ${dateRange ? `<div class="google-ad-dates">${dateRange}</div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    // Text-only ads — render as a styled search ad card
     return `<div class="google-ad-card">
-      ${hasPreview ? `<img class="google-ad-preview" src="${esc(ad.previewUrl)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" />` : ''}
-      ${ad.headline ? `<div class="google-ad-headline">${esc(ad.headline)}</div>` : ''}
-      ${ad.description ? `<div class="google-ad-desc">${esc(ad.description)}</div>` : ''}
-      ${ad.callToAction ? `<div style="margin-bottom:8px;"><span style="font-size:11px;padding:3px 8px;background:var(--accent-dim);color:var(--accent);border-radius:4px;font-weight:600;">${esc(ad.callToAction)}</span></div>` : ''}
-      <div class="google-ad-meta">
-        <span><strong>Format:</strong> ${esc(ad.format)}</span>
-        ${ad.numServedDays ? `<span><strong>Served:</strong> ${ad.numServedDays} days</span>` : ''}
-        ${imprLabel ? `<span><strong>Impressions:</strong> ${imprLabel}</span>` : ''}
-        ${surfaces ? `<span><strong>Surfaces:</strong> ${surfaces}</span>` : ''}
-        ${regions ? `<span><strong>Regions:</strong> ${regions}</span>` : ''}
-        ${dateRange ? `<span><strong>Dates:</strong> ${dateRange}</span>` : ''}
-        ${ad.isActive ? '<span style="color:var(--green);font-weight:600;">● Active</span>' : '<span style="color:var(--muted);">○ Inactive</span>'}
+      <div class="google-ad-text-card">
+        ${ad.headline ? `<div class="gat-headline">${esc(ad.headline)}</div>` : '<div class="gat-headline" style="color:var(--muted);">No headline</div>'}
+        ${ad.description ? `<div class="gat-desc">${esc(ad.description)}</div>` : ''}
+        ${ad.callToAction ? `<span class="gat-cta">${esc(ad.callToAction)}</span>` : ''}
+      </div>
+      <div class="google-ad-info">
+        <div class="google-ad-pills">
+          <span class="google-ad-pill format">${esc(ad.format)}</span>
+          ${surfaces}
+          ${ad.numServedDays ? `<span class="google-ad-pill days">${ad.numServedDays}d</span>` : ''}
+          ${ad.isActive ? '<span class="google-ad-pill active">Active</span>' : '<span class="google-ad-pill inactive">Ended</span>'}
+          ${regions}
+        </div>
+        ${dateRange ? `<div class="google-ad-dates">${dateRange}</div>` : ''}
       </div>
     </div>`;
   }).join('');
 
   document.getElementById('googleAdResults').style.display = 'block';
   document.getElementById('googleAdResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderGoogleAnalysis(analysis, advertiserName) {
+  const container = document.getElementById('googleAnalysis');
+  if (!analysis.sections || !analysis.sections.length) return;
+
+  container.innerHTML = `<div class="google-analysis-card">
+    <h3>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      AI Insights — ${esc(advertiserName)} Google Ads
+    </h3>
+    ${analysis.sections.map(s => `<div class="google-analysis-section">
+      <h4>${esc(s.headline)}</h4>
+      <p>${esc(s.summary)}</p>
+    </div>`).join('')}
+  </div>`;
+
+  container.style.display = 'block';
 }
 
 // ── Copy JSON ────────────────────────────────────────────────────────────────

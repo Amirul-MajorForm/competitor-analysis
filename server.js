@@ -690,6 +690,77 @@ function isRecentlyActive(lastShown) {
   return daysAgo <= 30;
 }
 
+// POST /api/google-analysis
+// AI insights across all Google ads for an advertiser
+app.post('/api/google-analysis', async (req, res) => {
+  const apiKey = getAnthropicKey(req);
+  const { ads = [], advertiserName = '' } = req.body;
+
+  if (!apiKey) return res.status(400).json({ error: 'Anthropic API key not configured' });
+  if (!ads.length) return res.status(400).json({ error: 'ads array is required' });
+
+  const sanitize = (str) => (str || '').replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+
+  const adsSummary = ads.map((ad, i) => {
+    const surfaces = (ad.surfaceServingStats || []).map(s => s.surfaceCode).join(', ');
+    const regions = (ad.regionStats || []).slice(0, 5).map(r => r.regionCode).join(', ');
+    const impr = ad.impressions ? `${ad.impressions.lowerBound || '?'}-${ad.impressions.upperBound || '?'}` : 'n/a';
+    return `[Ad #${i}] Format: ${ad.format} | Headline: "${sanitize(ad.headline)}" | Desc: "${sanitize(ad.description)}" | CTA: ${sanitize(ad.callToAction) || 'none'} | Served: ${ad.numServedDays || 0} days | Impressions: ${impr} | Surfaces: ${surfaces} | Regions: ${regions} | ${ad.isActive ? 'ACTIVE' : 'inactive'} | ${ad.firstShown || ''} → ${ad.lastShown || ''}`;
+  }).join('\n');
+
+  const prompt = `You are a senior paid media strategist specialising in Google Ads. Analyse the following ${ads.length} Google ads from "${advertiserName}".
+
+Respond ONLY with valid JSON — no markdown, no explanation, no backticks.
+
+Return exactly this structure:
+{
+  "sections": [
+    {
+      "headline": "<5-7 word punchy strategic headline>",
+      "summary": "<2-3 sentences. Sharp, opinionated, specific. Reference specific ads or patterns.>"
+    }
+  ]
+}
+
+Provide exactly 3 sections:
+1. Strategy read — what is their Google Ads strategy? Which surfaces (Search, YouTube, Shopping, Display, Maps) do they prioritise and why? What does their impression distribution tell you?
+2. Creative & messaging — what headline patterns, descriptions, and CTAs do they rely on? What's their positioning? Any A/B testing patterns visible (similar ads with slight variations)?
+3. Opportunities — specific weaknesses, gaps, or angles a competitor could exploit. Be concrete — reference specific ad formats, surfaces, or messaging gaps.
+
+Ads data:
+
+${adsSummary}`;
+
+  try {
+    const response = await fetch(`${ANTHROPIC_BASE}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Anthropic error ${response.status}: ${text.slice(0, 150)}`);
+    }
+
+    const data = await response.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    const raw = textBlock ? textBlock.text.trim().replace(/^```json|^```|```$/gm, '').trim() : '';
+    const parsed = JSON.parse(raw);
+    res.json(parsed);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/download-creatives
 // Fetches ad creative images server-side and returns a ZIP
 app.post('/api/download-creatives', async (req, res) => {
